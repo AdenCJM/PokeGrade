@@ -2,16 +2,18 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { isImageFile, prepareImage, shrinkDataUrl, type PreparedImage } from "@/lib/image";
-import type { GradeResult, HistoryEntry } from "@/lib/types";
-import Uploader from "@/components/uploader";
+import type { GradeResponse, HistoryEntry } from "@/lib/types";
+import Uploader, { type ValueFields } from "@/components/uploader";
 import Analyzing from "@/components/analyzing";
 import Result, { type ResultImages } from "@/components/result";
 import History from "@/components/history";
 
 type Status = "idle" | "grading" | "done";
 
-const HISTORY_KEY = "pokegrade.history.v1";
+const HISTORY_KEY = "pokegrade.history.v2";
 const HISTORY_CAP = 24;
+
+const EMPTY_VALUE: ValueFields = { card_value: "", fee: "", spread_9_10: "" };
 
 function loadHistory(): HistoryEntry[] {
   try {
@@ -31,7 +33,6 @@ function saveHistory(entries: HistoryEntry[]) {
       localStorage.setItem(HISTORY_KEY, JSON.stringify(list));
       return;
     } catch {
-      // QuotaExceededError — drop the oldest half and retry.
       if (list.length <= 1) return;
       list = list.slice(0, Math.ceil(list.length / 2));
     }
@@ -42,16 +43,20 @@ export default function Home() {
   const [front, setFront] = useState<PreparedImage | null>(null);
   const [back, setBack] = useState<PreparedImage | null>(null);
   const [closeups, setCloseups] = useState<PreparedImage[]>([]);
+  const [value, setValue] = useState<ValueFields>(EMPTY_VALUE);
 
   const [status, setStatus] = useState<Status>("idle");
   const [preparing, setPreparing] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [result, setResult] = useState<GradeResult | null>(null);
+  const [result, setResult] = useState<GradeResponse | null>(null);
   const [resultImages, setResultImages] = useState<ResultImages | null>(null);
 
   const [history, setHistory] = useState<HistoryEntry[]>([]);
 
   useEffect(() => {
+    // localStorage is client-only, so history loads after mount (avoids an SSR
+    // hydration mismatch).
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setHistory(loadHistory());
   }, []);
 
@@ -74,39 +79,44 @@ export default function Home() {
     [],
   );
 
+  const onValueField = useCallback((name: keyof ValueFields, v: string) => {
+    setValue((prev) => ({ ...prev, [name]: v }));
+  }, []);
+
   const grade = useCallback(async () => {
     if (!front) return;
     setStatus("grading");
     setError(null);
     try {
-      const res = await fetch("/api/grade", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({
-          front: { base64: front.base64 },
-          back: back ? { base64: back.base64 } : undefined,
-          closeups: closeups.map((c) => ({ base64: c.base64 })),
-        }),
-      });
+      const fd = new FormData();
+      fd.append("front", front.file, front.file.name || "front.jpg");
+      if (back) fd.append("back", back.file, back.file.name || "back.jpg");
+      closeups.forEach((c, i) =>
+        fd.append("closeups", c.file, c.file.name || `closeup_${i + 1}.jpg`),
+      );
+      for (const k of ["card_value", "fee", "spread_9_10"] as const) {
+        if (value[k].trim() !== "") fd.append(k, value[k].trim());
+      }
+
+      const res = await fetch("/api/grade", { method: "POST", body: fd });
       const data = await res.json();
       if (!res.ok) {
-        setError(data?.error ?? "Grading failed. Please try again.");
+        setError(data?.error ?? "Screening failed. Please try again.");
         setStatus("idle");
         return;
       }
-      const graded = data.result as GradeResult;
+      const graded = data.result as GradeResponse;
       const images: ResultImages = {
-        front: front.dataUrl,
-        back: back?.dataUrl ?? null,
-        closeups: closeups.map((c) => c.dataUrl),
+        front: front.thumb,
+        back: back?.thumb ?? null,
+        closeups: closeups.map((c) => c.thumb),
       };
       setResult(graded);
       setResultImages(images);
       setStatus("done");
 
-      // Persist to history with a small thumbnail (best-effort).
       try {
-        const thumb = await shrinkDataUrl(front.dataUrl, 256);
+        const thumb = await shrinkDataUrl(front.thumb, 256);
         const entry: HistoryEntry = {
           id:
             typeof crypto !== "undefined" && "randomUUID" in crypto
@@ -114,7 +124,7 @@ export default function Home() {
               : String(Date.now()),
           at: Date.now(),
           thumb,
-          result: graded,
+          response: graded,
         };
         setHistory((prev) => {
           const next = [entry, ...prev].slice(0, HISTORY_CAP);
@@ -128,12 +138,13 @@ export default function Home() {
       setError("Couldn't reach the grader. Is the dev server running?");
       setStatus("idle");
     }
-  }, [front, back, closeups]);
+  }, [front, back, closeups, value]);
 
   const reset = useCallback(() => {
     setFront(null);
     setBack(null);
     setCloseups([]);
+    setValue(EMPTY_VALUE);
     setResult(null);
     setResultImages(null);
     setError(null);
@@ -141,7 +152,7 @@ export default function Home() {
   }, []);
 
   const openHistory = useCallback((e: HistoryEntry) => {
-    setResult(e.result);
+    setResult(e.response);
     setResultImages({ front: e.thumb, back: null, closeups: [] });
     setStatus("done");
     if (typeof window !== "undefined")
@@ -165,7 +176,7 @@ export default function Home() {
             PokeGrade
           </h1>
           <p className="mt-1 text-sm text-muted">
-            A PSA-style grade estimate from your photos.
+            Should you pay to grade this card? A measured pre-screen.
           </p>
         </div>
         <span className="hidden text-right text-xs text-faint sm:block">
@@ -178,7 +189,7 @@ export default function Home() {
       {status === "done" && result && resultImages ? (
         <Result result={result} images={resultImages} onReset={reset} />
       ) : status === "grading" && front ? (
-        <Analyzing frontUrl={front.dataUrl} />
+        <Analyzing frontUrl={front.thumb} />
       ) : (
         <div className="space-y-8">
           <Uploader
@@ -189,6 +200,8 @@ export default function Home() {
             preparing={preparing}
             canGrade={!!front && !preparing}
             error={error}
+            value={value}
+            onValueField={onValueField}
             onPickFront={(f) => pick(f, setFront)}
             onPickBack={(f) => pick(f, setBack)}
             onAddCloseup={(f) =>
@@ -209,9 +222,10 @@ export default function Home() {
           />
 
           <p className="text-xs leading-relaxed text-faint">
-            For the best read: fill the frame, shoot square-on, kill the glare,
-            and add close-ups of the corners. This is an estimate to help you
-            triage and compare cards, not a substitute for professional grading.
+            Centering is measured deterministically; corners, edges, and surface
+            are ruled by Claude on the photos and otherwise routed to an in-hand
+            check. This is a pre-grading estimate to triage submissions, not a
+            substitute for professional grading.
           </p>
         </div>
       )}

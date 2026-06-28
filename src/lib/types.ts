@@ -1,10 +1,16 @@
-// Shared types for a PSA-style grade ESTIMATE. Pure module — safe to import
-// from both client and server (no SDK / node deps here).
+// Shared types for the converged PokeGrade verdict. Pure module — safe to
+// import from client and server. Mirrors the FastAPI engine's GradeResponse
+// (engine/pokegrade/models.py). The engine measures centering deterministically,
+// Claude rules the soft pillars, and a deterministic step returns an EV-aware
+// SUBMIT / IN_HAND_CHECK / SKIP verdict. This is a pre-grade estimate, never an
+// official PSA/BGS/CGC grade.
 
-export type Assessable = "yes" | "limited" | "no";
-export type Confidence = "low" | "medium" | "high";
-export type Severity = "minor" | "moderate" | "major";
+export type Verdict = "SUBMIT" | "IN_HAND_CHECK" | "SKIP";
+export type Confidence = "high" | "medium" | "low";
 export type Pillar = "centering" | "corners" | "edges" | "surface";
+export type PillarStatus = "clean" | "concern" | "could_not_assess";
+export type Severity = "none" | "minor" | "moderate" | "major";
+export type BorderType = "bordered" | "borderless";
 export type Finish =
   | "holo"
   | "reverse-holo"
@@ -12,66 +18,88 @@ export type Finish =
   | "non-holo"
   | "unknown";
 
-/** PSA uses whole grades plus a 1.5 (Fair). No 9.5 / half grades. */
-export const PSA_GRADES = [1, 1.5, 2, 3, 4, 5, 6, 7, 8, 9, 10] as const;
-
-export const CENTERING_RATIOS = [
-  "50/50",
-  "55/45",
-  "60/40",
-  "65/35",
-  "70/30",
-  "75/25",
-  "80/20",
-  "85/15",
-  "90/10",
-  "unknown",
-  "not-provided",
-] as const;
-export type CenteringRatio = (typeof CENTERING_RATIOS)[number];
-
-export type Subgrade = {
-  /** 1-10 PSA scale (1.5 allowed). */
-  grade: number;
-  /** Could the photos actually confirm this pillar? */
-  assessable: Assessable;
+export type SideCentering = {
+  left_px: number | null;
+  right_px: number | null;
+  top_px: number | null;
+  bottom_px: number | null;
+  h_ratio: string;
+  v_ratio: string;
+  worse_axis: string;
+  worse_pct: number | null;
+  border_type: BorderType;
+  confidence: Confidence;
+  assessable: boolean;
+  grade_estimate: number | null;
+  overlay_png_b64: string | null;
+  notes: string[];
 };
 
-export type GradeResult = {
-  scale: "PSA";
-  photoQuality: {
-    overallGradeable: Assessable;
-    issues: string[];
-  };
-  identification: {
-    /** Literal text/symbols the model can actually read on the card. */
-    readEvidence: string;
-    name: string | null;
-    set: string | null;
-    number: string | null;
-    language: string | null;
-    finish: Finish;
-    confidence: Confidence;
-  };
-  observations: Record<Pillar, string>;
-  centering: {
-    frontRatioLR: CenteringRatio;
-    frontRatioTB: CenteringRatio;
-    backRatioLR: CenteringRatio;
-    backRatioTB: CenteringRatio;
-  };
-  subgrades: Record<Pillar, Subgrade>;
-  /** Overall estimated PSA grade. */
-  overall: number;
+export type CenteringMeasurement = {
+  front: SideCentering | null;
+  back: SideCentering | null;
+};
+
+export type SoftPillarFlag = {
+  status: PillarStatus;
+  severity: Severity;
+  observation: string;
+};
+
+export type LoupeItem = {
+  pillar: Pillar;
+  location: string;
+  what_to_check: string;
+};
+
+export type CardRead = {
+  name: string | null;
+  set: string | null;
+  number: string | null;
+  language: string | null;
+  finish: Finish;
+  read_evidence: string;
   confidence: Confidence;
-  defects: Array<{
-    dimension: Pillar;
-    severity: Severity;
-    location: string;
-    description: string;
-  }>;
-  summary: string;
-  caveats: string[];
+};
+
+export type PhotoQuality = {
+  gradeable: string;
+  issues: string[];
+};
+
+export type SoftPillarAssessment = {
+  corners: SoftPillarFlag;
+  edges: SoftPillarFlag;
+  surface: SoftPillarFlag;
+  limiting_pillar_candidate: Pillar | null;
+  loupe_checklist: LoupeItem[];
+  card_read: CardRead;
+  photo_quality: PhotoQuality;
+  confidence: Confidence;
+  narrative: string;
+};
+
+export type ValueInputs = {
+  card_value: number | null;
+  fee: number | null;
+  spread_9_10: number | null;
+};
+
+export type GradeResponse = {
+  card_id: string;
+  run_id: string;
+  verdict: Verdict;
+  confidence: Confidence;
+  limiting_pillar: Pillar | null;
+  reason_codes: string[];
+  centering: CenteringMeasurement;
+  soft_pillars: SoftPillarAssessment;
+  value: ValueInputs;
+  ev_estimate: number | null;
+  ev_worth: boolean | null;
+  standards_version: string;
+  engine_version: string;
+  notes: string[];
 };
 
 /** A graded card as stored in browser history. */
@@ -79,55 +107,78 @@ export type HistoryEntry = {
   id: string;
   at: number;
   thumb: string; // small data URL
-  result: GradeResult;
+  response: GradeResponse;
 };
 
-// --- Grade presentation -----------------------------------------------------
+// --- presentation -----------------------------------------------------------
 
 export type BandKey = "gem" | "mint" | "high" | "mid" | "low";
 
-/** PSA grade label for a numeric grade. */
-export function gradeLabel(n: number): string {
-  const map: Record<string, string> = {
-    "10": "Gem Mint",
-    "9": "Mint",
-    "8": "NM-MT",
-    "7": "Near Mint",
-    "6": "EX-MT",
-    "5": "Excellent",
-    "4": "VG-EX",
-    "3": "Very Good",
-    "2": "Good",
-    "1.5": "Fair",
-    "1": "Poor",
-  };
-  return map[String(n)] ?? "—";
-}
-
-/**
- * Band drives colour. Only hue rotates across the ramp; 10 is structurally
- * special (gold). Keep these keys in sync with the band tokens in globals.css.
- */
-export function gradeBand(n: number): BandKey {
-  if (n >= 10) return "gem";
-  if (n >= 9) return "mint";
-  if (n >= 7) return "high";
-  if (n >= 5) return "mid";
-  return "low";
-}
-
-/** Round a model number to the nearest valid PSA grade. */
-export function snapToPsa(n: number): number {
-  let best = PSA_GRADES[0] as number;
-  let bestD = Infinity;
-  for (const g of PSA_GRADES) {
-    const d = Math.abs(g - n);
-    if (d < bestD) {
-      bestD = d;
-      best = g;
-    }
-  }
-  return best;
-}
-
 export const PILLARS: Pillar[] = ["centering", "corners", "edges", "surface"];
+
+export const PILLAR_LABEL: Record<Pillar, string> = {
+  centering: "Centering",
+  corners: "Corners",
+  edges: "Edges",
+  surface: "Surface",
+};
+
+export type VerdictMeta = {
+  label: string;
+  band: BandKey;
+  blurb: string;
+};
+
+/** Verdict drives the headline colour and copy. SUBMIT is the rare green-light;
+ * IN_HAND_CHECK (amber) is the honest, expected outcome for a clean-looking
+ * card; SKIP (red) is the prosecutor succeeding. */
+export function verdictMeta(v: Verdict): VerdictMeta {
+  switch (v) {
+    case "SUBMIT":
+      return { label: "Submit", band: "mint", blurb: "Worth the grading fee" };
+    case "IN_HAND_CHECK":
+      return {
+        label: "In-hand check",
+        band: "mid",
+        blurb: "Inspect under a loupe before deciding",
+      };
+    case "SKIP":
+      return { label: "Skip", band: "low", blurb: "Don't pay to grade this one" };
+  }
+}
+
+export const PILLAR_STATUS_LABEL: Record<PillarStatus, string> = {
+  clean: "Looks clean",
+  concern: "Concern",
+  could_not_assess: "Can't confirm from photo",
+};
+
+/** Map a soft-pillar status to a band for its chip colour. */
+export function statusBand(s: PillarStatus): BandKey {
+  if (s === "clean") return "high";
+  if (s === "concern") return "low";
+  return "mid"; // could_not_assess — amber "check in hand"
+}
+
+/** Human label for a reason code emitted by the verdict engine. */
+export function reasonLabel(code: string): string {
+  const [key, arg] = code.split(":");
+  const map: Record<string, string> = {
+    CENTERING_CAPS_BELOW_10: "Measured centering caps this below a 10",
+    CENTERING_OUT_OF_BOUNDS: "Centering is well past the PSA-10 cutoff",
+    CENTERING_COULD_NOT_ASSESS: "Centering could not be measured from the photo",
+    CENTERING_TEN_ELIGIBLE: "Measured centering is PSA-10 eligible",
+    ALL_SOFT_PILLARS_CLEAN: "Corners, edges and surface look clean",
+    EV_SPREAD_BELOW_FEE: "The 9-to-10 spread does not cover the grading fee",
+    SOFT_PILLAR_COULD_NOT_ASSESS: arg
+      ? `${PILLAR_LABEL[arg as Pillar] ?? arg} can't be confirmed from the photo`
+      : "A soft pillar can't be confirmed from the photo",
+    SOFT_PILLAR_CONCERN: arg
+      ? `Possible ${arg} defect`
+      : "A soft-pillar concern was flagged",
+    SOFT_PILLAR_MAJOR: arg
+      ? `A photo-visible ${arg} defect caps this card`
+      : "A photo-visible defect caps this card",
+  };
+  return map[key] ?? code;
+}

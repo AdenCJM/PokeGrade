@@ -3,8 +3,12 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "dev:lan": "next dev -H 0.0.0.0 -p 3000",
+    "dev": "concurrently -k -n engine,web -c blue,green \"npm:dev:engine\" \"npm:dev:web\"",
+    "dev:lan": "concurrently -k -n engine,web -c blue,green \"npm:dev:engine\" \"npm:dev:web:lan\"",
+    "dev:engine": "uv run --project engine uvicorn pokegrade.app:app --host 127.0.0.1 --port 8000 --reload --reload-dir engine/pokegrade",
+    "dev:web": "next dev",
+    "dev:web:lan": "next dev -H 0.0.0.0 -p 3000",
+    "engine:test": "uv run --project engine pytest -q",
     "build": "next build",
     "start": "next start",
     "lint": "eslint"
@@ -18,6 +22,7 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
+    "concurrently": "^9.1.0",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",

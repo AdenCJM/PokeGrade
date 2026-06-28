@@ -1,0 +1,44 @@
+{
+  "version": "1.0.0",
+  "date": "2026-06-28",
+  "rationale": "Single canonical PSA thresholds for the PokeGrade engine. The centering ladder is extracted verbatim from the web app's grading.ts system prompt; the SKIP/borderline thresholds encode the approved /office-hours design. The engine (centering.py, verdict.py) and the Claude adjudication prompt both read this file so the two never drift. worse_pct = the larger border share on the worse axis (e.g. 58/42 -> 58.0).",
+  "scale": [10, 9, 8, 7, 6, 5, 4, 3, 2, 1.5, 1],
+  "centering": {
+    "front": {
+      "ladder": [
+        { "max_worse_pct": 55, "grade": 10 },
+        { "max_worse_pct": 60, "grade": 9 },
+        { "max_worse_pct": 65, "grade": 8 },
+        { "max_worse_pct": 70, "grade": 7 },
+        { "max_worse_pct": 80, "grade": 6 },
+        { "max_worse_pct": 85, "grade": 5 },
+        { "max_worse_pct": 100, "grade": 4 }
+      ],
+      "ten_eligible_max_pct": 55,
+      "borderline_max_pct": 60,
+      "skip_threshold_pct": 60,
+      "rationale": "55/45 or better is PSA-10 eligible. 56/44-60/40 is the PSA-9 borderline zone. Worse than 60/40 removes a 10 from consideration outright. Because PokeGrade answers 'will this gem a 10?', the verdict treats ANY measured, high-confidence worse-axis past ten_eligible_max_pct (55) as a deterministic 10-killer -> SKIP; past skip_threshold_pct (60) the cap is egregious and flagged CENTERING_OUT_OF_BOUNDS."
+    },
+    "back": {
+      "ten_eligible_max_pct": 75,
+      "rationale": "Backs are far more forgiving: 75/25 or better keeps a 10 in play. The back is rarely the limiting axis and is not a SKIP gate on its own in v1."
+    }
+  },
+  "weakest_link": {
+    "enabled": true,
+    "rationale": "The overall ceiling is the minimum across the four pillars (Centering, Corners, Edges, Surface), never an average. Centering is evaluated first because it is the only deterministically measurable pillar."
+  },
+  "soft_pillars": {
+    "names": ["corners", "edges", "surface"],
+    "default_status": "could_not_assess",
+    "rationale": "Corners, edges, and surface are adjudicated by Claude from the flat shots at a conservative could_not_assess default. A photo shows the absence of OBVIOUS defects, not flawlessness. Surface is the dominant hidden cap for modern foils (micro-scratches under raking light) and is honestly degraded to in-hand-only on heavily etched SIRs."
+  },
+  "verdict": {
+    "ev": {
+      "spread_must_exceed_fee": true,
+      "rationale": "EV-aware: a tiny 9-vs-10 spread is not worth the grading fee even at high 10-odds. When spread_9_10 and fee are both provided and spread_9_10 <= fee, the card is 'not worth' -> SKIP regardless of condition. ev_estimate = spread_9_10 - fee (the marginal value of a successful 9->10 upgrade, net of fee)."
+    },
+    "audit_sample_rate": 0.1,
+    "audit_rationale": "A random sample of SKIP / IN_HAND_CHECK predictions is flagged for occasional real submission so over-skipping (selection bias) stays measurable in the ledger."
+  }
+}

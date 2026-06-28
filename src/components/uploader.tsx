@@ -2,6 +2,12 @@
 
 import type { PreparedImage } from "@/lib/image";
 
+export type ValueFields = {
+  card_value: string;
+  fee: string;
+  spread_9_10: string;
+};
+
 type PickProps = {
   onPick: (file: File) => void;
   /** capture="environment" opens the rear camera on mobile. */
@@ -12,8 +18,6 @@ type PickProps = {
 };
 
 // A <label> wrapping the file input, so a tap opens the native picker directly.
-// (Mobile Safari/Chrome won't open the picker from a programmatic .click() on a
-// display:none input — the label association is the reliable cross-device path.)
 function PickButton({ onPick, capture, children, className, ariaLabel }: PickProps) {
   return (
     <label aria-label={ariaLabel} className={`${className ?? ""} cursor-pointer`}>
@@ -45,7 +49,7 @@ function Thumb({
   return (
     <div className="group relative aspect-[3/4] overflow-hidden rounded-xl border border-border bg-surface2">
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={image.dataUrl} alt={label} className="h-full w-full object-cover" />
+      <img src={image.thumb} alt={label} className="h-full w-full object-cover" />
       <span className="absolute left-2 top-2 rounded-md bg-black/55 px-1.5 py-0.5 text-[11px] font-medium uppercase tracking-wide text-white">
         {label}
       </span>
@@ -107,6 +111,39 @@ function EmptySlot({
   );
 }
 
+function ValueInput({
+  label,
+  value,
+  onChange,
+  hint,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  hint?: string;
+}) {
+  return (
+    <label className="block">
+      <span className="text-[11px] font-medium uppercase tracking-wide text-faint">
+        {label}
+      </span>
+      <div className="mt-1 flex items-center rounded-lg border border-border bg-surface2/60 px-2.5 focus-within:border-[var(--band-mint-ring)]">
+        <span className="text-sm text-faint">$</span>
+        <input
+          type="number"
+          inputMode="decimal"
+          min="0"
+          step="1"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder={hint}
+          className="w-full bg-transparent px-1.5 py-2 text-sm text-fg outline-none placeholder:text-faint"
+        />
+      </div>
+    </label>
+  );
+}
+
 export type UploaderProps = {
   front: PreparedImage | null;
   back: PreparedImage | null;
@@ -115,6 +152,8 @@ export type UploaderProps = {
   preparing?: boolean;
   canGrade: boolean;
   error: string | null;
+  value: ValueFields;
+  onValueField: (name: keyof ValueFields, v: string) => void;
   onPickFront: (f: File) => void;
   onPickBack: (f: File) => void;
   onAddCloseup: (f: File) => void;
@@ -135,6 +174,8 @@ export default function Uploader(props: UploaderProps) {
     preparing,
     canGrade,
     error,
+    value,
+    onValueField,
     onPickFront,
     onPickBack,
     onAddCloseup,
@@ -150,7 +191,7 @@ export default function Uploader(props: UploaderProps) {
         {front ? (
           <Thumb image={front} label="Front" onClear={onClearFront} />
         ) : (
-          <EmptySlot label="Front" hint="Required" onPick={onPickFront} />
+          <EmptySlot label="Front" hint="Required · flat, square-on" onPick={onPickFront} />
         )}
         {back ? (
           <Thumb image={back} label="Back" onClear={onClearBack} />
@@ -158,6 +199,12 @@ export default function Uploader(props: UploaderProps) {
           <EmptySlot label="Back" hint="Optional" onPick={onPickBack} />
         )}
       </div>
+
+      <p className="rounded-lg border border-border bg-surface2/30 px-3 py-2 text-xs leading-relaxed text-faint">
+        Centering is <span className="text-muted">measured</span>, not eyeballed.
+        Shoot the front flat and square-on, fill the frame, and use a plain
+        mid-grey background so the card edge reads cleanly.
+      </p>
 
       <div>
         <div className="mb-2 flex items-center justify-between">
@@ -193,9 +240,35 @@ export default function Uploader(props: UploaderProps) {
           ) : null}
         </div>
         <p className="mt-2 text-xs text-faint">
-          Close-ups of corners and any suspect spot sharpen the read — fine
-          defects can be lost in a full-card shot.
+          Sharp close-ups of corners and any suspect spot let the model rule the
+          soft pillars instead of routing them to an in-hand check.
         </p>
+      </div>
+
+      <div>
+        <div className="mb-2 text-xs font-medium uppercase tracking-wide text-faint">
+          Value (optional · makes the verdict EV-aware)
+        </div>
+        <div className="grid grid-cols-3 gap-2">
+          <ValueInput
+            label="Card value"
+            value={value.card_value}
+            onChange={(v) => onValueField("card_value", v)}
+            hint="raw / 9"
+          />
+          <ValueInput
+            label="Grading fee"
+            value={value.fee}
+            onChange={(v) => onValueField("fee", v)}
+            hint="25"
+          />
+          <ValueInput
+            label="9 → 10 spread"
+            value={value.spread_9_10}
+            onChange={(v) => onValueField("spread_9_10", v)}
+            hint="diff"
+          />
+        </div>
       </div>
 
       {preparing ? (
@@ -217,11 +290,11 @@ export default function Uploader(props: UploaderProps) {
         disabled={!canGrade || busy}
         className="w-full rounded-xl bg-fg px-4 py-3 text-center text-sm font-semibold text-bg transition enabled:hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
       >
-        {busy ? "Analysing…" : "Grade card"}
+        {busy ? "Screening…" : "Screen card"}
       </button>
       {!front ? (
         <p className="text-center text-xs text-faint">
-          Add a front photo to grade.
+          Add a front photo to screen this card.
         </p>
       ) : null}
     </div>

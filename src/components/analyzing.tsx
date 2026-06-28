@@ -3,12 +3,11 @@
 import { useEffect, useState } from "react";
 
 const PHASES = [
+  "Detecting the card edge",
+  "Measuring centering",
   "Reading the card",
-  "Assessing centering",
-  "Inspecting corners",
-  "Inspecting edges",
-  "Scanning the surface",
-  "Weighing the grade",
+  "Ruling corners, edges, surface",
+  "Weighing the verdict",
 ];
 
 export default function Analyzing({ frontUrl }: { frontUrl: string }) {
@@ -37,9 +36,10 @@ export default function Analyzing({ frontUrl }: { frontUrl: string }) {
         </div>
 
         <div className="flex-1 self-stretch">
-          <div className="text-sm font-medium text-fg">Analysing your card</div>
+          <div className="text-sm font-medium text-fg">Screening your card</div>
           <p className="mt-1 text-xs text-faint">
-            A careful read takes about 15-40 seconds.
+            Measuring centering, then ruling the soft pillars — about 15-40
+            seconds.
           </p>
 
           <ul className="mt-4 space-y-2.5">

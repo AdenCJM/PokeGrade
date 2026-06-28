@@ -1,28 +1,20 @@
 // Client-side image preparation.
 //
-// Phone photos are large (often 12MP+) and carry EXIF orientation. Opus 4.8
-// supports high-resolution vision up to a 2576px long edge — and card defects
-// (corner whitening, edge chipping, surface scratches) live in exactly that
-// detail, so we keep it rather than throwing it away at 1568px. We:
-//   1. decode with EXIF orientation already applied (createImageBitmap +
-//      imageOrientation: "from-image"), avoiding sideways/upside-down cards,
-//   2. scale the long edge down to MAX_EDGE,
-//   3. re-encode as JPEG to keep the upload small (latency + token cost).
-//
-// 2576 matches Opus 4.8's vision ceiling. If MODEL is set to sonnet (which
-// downsamples to ~1568), these uploads are slightly larger than needed but
-// still work — the server model is the source of truth for actual analysis.
+// The converged engine wants the ORIGINAL file bytes (raw pixels + EXIF) for
+// deterministic centering and capture validation, not a re-encoded canvas blob.
+// So we keep the original File for upload and only generate a small,
+// EXIF-correct THUMBNAIL for display. Decoding applies EXIF orientation
+// (createImageBitmap imageOrientation:"from-image", or <img> draw fallback) so
+// thumbnails never show sideways/upside-down cards.
 
-export const MAX_EDGE = 2576;
+export const THUMB_EDGE = 640;
 export const JPEG_QUALITY = 0.85;
 
 export type PreparedImage = {
-  /** base64 WITHOUT the data: prefix — ready for the Anthropic image block */
-  base64: string;
-  /** always image/jpeg after re-encoding */
-  mediaType: "image/jpeg";
-  /** data URL for showing a thumbnail in the UI */
-  dataUrl: string;
+  /** the original user-selected file — sent to the engine unmodified */
+  file: File;
+  /** small data URL for showing a thumbnail in the UI */
+  thumb: string;
   width: number;
   height: number;
 };
@@ -55,15 +47,12 @@ function withTimeout<T>(p: Promise<T>, ms: number): Promise<T> {
 
 /**
  * Try createImageBitmap first (it applies EXIF orientation in one step). On iOS
- * this can HANG for HEIC — never resolving or rejecting — so it's wrapped in a
- * timeout. Returns null if unavailable/failed/timed out so the caller falls
- * back to the <img> decoder, which Safari uses to read HEIC natively.
+ * this can HANG for HEIC, so it's wrapped in a timeout. Returns null on
+ * unavailable/failed/timeout so the caller falls back to the <img> decoder.
  */
 async function decodeBitmap(file: File): Promise<ImageBitmap | null> {
   if (typeof createImageBitmap !== "function") return null;
   try {
-    // Short timeout: on iOS this can hang for HEIC. Bail fast to the <img>
-    // fallback (which Safari decodes HEIC with, applying EXIF on draw).
     return await withTimeout(
       createImageBitmap(file, { imageOrientation: "from-image" }),
       3500,
@@ -105,8 +94,9 @@ async function decodeImg(
 }
 
 /**
- * Resize + re-encode a user-selected file for upload. Throws a friendly Error
- * (DECODE_ERROR) if the file can't be decoded. Never hangs.
+ * Validate + decode a user-selected file and build a display thumbnail, keeping
+ * the original File for upload. Throws a friendly Error (DECODE_ERROR) if the
+ * file can't be decoded. Never hangs.
  */
 export async function prepareImage(file: File): Promise<PreparedImage> {
   let source: ImageBitmap | HTMLImageElement;
@@ -132,7 +122,7 @@ export async function prepareImage(file: File): Promise<PreparedImage> {
     throw new Error(DECODE_ERROR);
   }
 
-  const scale = Math.min(1, MAX_EDGE / Math.max(srcW, srcH));
+  const scale = Math.min(1, THUMB_EDGE / Math.max(srcW, srcH));
   const width = Math.max(1, Math.round(srcW * scale));
   const height = Math.max(1, Math.round(srcH * scale));
 
@@ -144,11 +134,10 @@ export async function prepareImage(file: File): Promise<PreparedImage> {
     if (!ctx) throw new Error("Canvas not supported in this browser.");
     ctx.drawImage(source as CanvasImageSource, 0, 0, width, height);
 
-    const dataUrl = canvas.toDataURL("image/jpeg", JPEG_QUALITY);
-    const base64 = dataUrl.split(",")[1] ?? "";
-    if (!base64) throw new Error(DECODE_ERROR);
+    const thumb = canvas.toDataURL("image/jpeg", JPEG_QUALITY);
+    if (!thumb || thumb.length < 32) throw new Error(DECODE_ERROR);
 
-    return { base64, mediaType: "image/jpeg", dataUrl, width, height };
+    return { file, thumb, width: srcW, height: srcH };
   } finally {
     if ("close" in source && typeof source.close === "function") source.close();
     if (objectUrl) URL.revokeObjectURL(objectUrl);
