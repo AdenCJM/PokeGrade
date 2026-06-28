@@ -83,3 +83,10 @@ history lives only in your browser (localStorage).
 ## Stack
 
 Next.js 16 (App Router) · React 19 · TypeScript · Tailwind v4 · `@anthropic-ai/sdk` · zod
+
+## Research
+
+Background research informing accuracy and roadmap lives in [docs/research/](docs/research/):
+
+- [Competitive landscape](docs/research/competitive-landscape.md) - the existing AI pre-grading apps and the open verified-returns-log gap PokeGrade can own.
+- [Training data sources](docs/research/training-data-sources.md) - where to source image to official-grade data to validate and improve the estimate, and the label-leakage trap to avoid.
