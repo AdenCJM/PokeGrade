@@ -15,6 +15,20 @@ Most pre-grading apps let a vision model eyeball centering from one quick photo.
 
 The terminal verdict is computed deterministically; Claude fills the judgment the CV can't.
 
+## Showcase
+
+A real screening run on a phone (`npm run dev:lan`), one Pikachu ex, front and back photos only — no close-ups, no lens calibration loaded.
+
+| Screening in progress | Verdict: Skip |
+| --- | --- |
+| [![Screening progress](docs/screenshots/analyzing.jpg)](docs/screenshots/analyzing.jpg) | [![Skip verdict on a Pikachu ex](docs/screenshots/result-skip.jpg)](docs/screenshots/result-skip.jpg) |
+
+| Measured centering | Loupe checklist + expected value |
+| --- | --- |
+| [![Measured centering overlay, 58.5/41.5](docs/screenshots/centering-detail.jpg)](docs/screenshots/centering-detail.jpg) | [![Inspect-in-hand checklist and EV breakdown](docs/screenshots/loupe-ev.jpg)](docs/screenshots/loupe-ev.jpg) |
+
+Centering measured 58.5/41.5 on the worse axis — past the PSA-10 cutoff — which is what drives the Skip verdict here regardless of how clean corners, edges, and surface look. Note the caveat: no lens-calibration profile was loaded for this phone, so centering confidence is reduced (`pokegrade calibrate-lens` fixes that per-phone).
+
 ## Architecture
 
 ```
