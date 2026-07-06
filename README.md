@@ -27,7 +27,7 @@ A real screening run on a phone (`npm run dev:lan`), one Pikachu ex, front and b
 | --- | --- |
 | [![Measured centering overlay, 58.5/41.5](docs/screenshots/centering-detail.jpg)](docs/screenshots/centering-detail.jpg) | [![Inspect-in-hand checklist and EV breakdown](docs/screenshots/loupe-ev.jpg)](docs/screenshots/loupe-ev.jpg) |
 
-Centering measured 58.5/41.5 on the worse axis — past the PSA-10 cutoff — which is what drives the Skip verdict here regardless of how clean corners, edges, and surface look. Note the caveat: no lens-calibration profile was loaded for this phone, so centering confidence is reduced (`pokegrade calibrate-lens` fixes that per-phone).
+Centering measured 58.5/41.5 on the worse axis — past the PSA-10 cutoff — which alone caps this card below a 10 and drives the Skip verdict. No close-ups were shot for this run either, so corners, edges, and surface all come back could-not-assess rather than clean, which is why the loupe checklist below asks for five separate in-hand checks. That's the exact gap the [capture guidance](#how-to-get-a-trustworthy-read) further down exists to close. Also note the caveat that no lens-calibration profile was loaded for this phone, which is why centering confidence reads medium instead of high (`pokegrade calibrate-lens` fixes that per-phone).
 
 ## Architecture
 
