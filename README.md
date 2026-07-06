@@ -45,6 +45,10 @@ Centering measured 58.5/41.5 on the worse axis — past the PSA-10 cutoff — wh
 
 `npm run dev` starts both the Python engine and Next together. **v1 is local-only** — the engine + SQLite ledger run on your Mac (they can't run on Vercel's serverless).
 
+## v1 vs v2
+
+This repository is v1: a local desktop app. The v2 production-readiness plan ([`docs/production-readiness-plan-v2.md`](docs/production-readiness-plan-v2.md)) outlines the path to a public web service with async grading, credits, and a verified log. That work is separate scope; v1 ships as-is.
+
 ## Quick start
 
 ```bash
@@ -107,9 +111,9 @@ uv run --project engine pokegrade calibrate-lens <chessboard-folder>
 
 | Env var             | Default                 | Notes                                                           |
 | ------------------- | ----------------------- | --------------------------------------------------------------- |
-| `ANTHROPIC_API_KEY` | (required for soft pillars) | Used by the engine's adjudicator. Without it, centering + verdict still run; soft pillars route to in-hand check. |
-| `MODEL`             | `claude-opus-4-8`       | Adjudicator model. `claude-sonnet-4-6` for faster, cheaper runs. |
-| `ENGINE_URL`        | `http://127.0.0.1:8000` | Where the Next route reaches the engine.                        |
+| `ANTHROPIC_API_KEY` | (required)              | Used by the engine's adjudicator. Without it, centering + verdict still run; soft pillars (corners, edges, surface) route to `could-not-assess` instead. |
+| `MODEL`             | `claude-opus-4-8`       | Adjudicator model. Try `claude-sonnet-4-6` for lower cost and faster runs (trades accuracy). |
+| `ENGINE_URL`        | `http://127.0.0.1:8000` | Where the Next.js route reaches the Python engine. Only needed if running the engine on a different host. |
 
 ## Tests
 

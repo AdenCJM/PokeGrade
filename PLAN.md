@@ -1,4 +1,6 @@
-# PokeGrade — Implementation Plan
+# PokeGrade — Implementation Plan (v1)
+
+This is the original v1 implementation plan. For the v2 public-launch roadmap, see [`docs/production-readiness-plan-v2.md`](../docs/production-readiness-plan-v2.md).
 
 ## Goal
 A web app where a user submits photos of a Pokémon card and gets an estimated grade with a per-dimension breakdown. Usable this afternoon, run locally on a Mac and reachable from a phone over the home wifi (LAN). Front photo required; back and close-up photos optional.
@@ -6,7 +8,7 @@ A web app where a user submits photos of a Pokémon card and gets an estimated g
 This produces a **pre-grading estimate / second opinion**, not an official PSA/Beckett/CGC grade. The UI must be honest about that.
 
 ## Grading engine
-Claude vision (default `claude-opus-4-8`, model configurable via env). The image(s) plus an engineered grading prompt are sent server-side. The model acts as a professional grader using PSA-style methodology across four pillars:
+Claude Opus 4.8 vision (model configurable via env). The image(s) plus an engineered grading prompt are sent server-side. The model acts as a professional grader using PSA-style methodology across four pillars. PSA methodology is the industry standard for Pokémon cards, so predictions are directly comparable to official grades:
 - **Centering** — front/back, left-right and top-bottom border ratios
 - **Corners** — sharpness, whitening, fraying, dings
 - **Edges** — whitening, chipping, nicks, roughness
@@ -37,9 +39,9 @@ The prompt forces the model to ground every observation in what is actually visi
 - Key read from `.env.local` as `ANTHROPIC_API_KEY`; `MODEL` optional override.
 
 ## Image handling
-- Client resizes each photo to a max long edge of **1568px** (Claude's vision sweet spot — larger gets downsampled anyway), re-encodes to JPEG ~0.85 quality, keeping payloads small for latency/cost.
-- Front (required), Back (optional), Close-ups (optional, multiple). All sent in one message. UI tells the user close-ups of corners/edges improve accuracy because fine defects can be lost at 1568px.
-- Reject non-image files; cap count/size.
+- Client resizes each photo to a max long edge of **1568px**. This is Claude's vision sweet spot: larger resolutions get downsampled server-side anyway, so resizing client-side saves bandwidth and API token cost without losing meaningful detail. JPEG compression at ~0.85 quality is invisible to the model but further reduces payload.
+- Front (required), Back (optional), Close-ups (optional, multiple). All sent in one message. The UI explains that close-ups of corners and edges dramatically improve accuracy because fine defects (whitening, fraying, surface scratches) can get lost at full-card resolution.
+- Reject non-image files; cap total count and individual file size to prevent abuse.
 
 ## UX flow
 1. Landing: large capture/upload zone. On mobile, `<input type="file" accept="image/*" capture="environment">` opens the camera (works over plain HTTP on LAN — no HTTPS needed, unlike getUserMedia). On desktop, file picker + drag-drop.

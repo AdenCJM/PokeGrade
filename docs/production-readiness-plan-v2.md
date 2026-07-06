@@ -2,13 +2,25 @@
 
 _Supersedes the v1 production-readiness plan. Incorporates the 2026-06-29 evaluation (`pokegrade-freemium-evaluation.md`) and four locked decisions. Australian English. This is a plan for sign-off, not yet an instruction to build._
 
+## Executive Summary
+
+PokeGrade v2 ships as a **credits-based web service** (not open freemium). Users get a small free trial (from Phase 0 cost baseline), then purchase credit packs to grade cards. The service runs on Vercel (frontend) + Railway/Render (engine) with a verified log seeded by founder submissions in parallel with development.
+
+**Critical path:** Phase 0 is the long pole (~2–3 weeks): cost truth, async job flow, Postgres migration, and spend controls. Phases 1–2 add identity, credits, and monetisation. Phase 3 is hardening. The **verified log is a launch blocker**, not Phase 3, because it builds trust day one and requires multi-month PSA-return seeding.
+
+**Key locked decisions:**
+1. Credits model (tiny trial + packs), not open freemium
+2. Async grading (`submit → 202 + job id → poll`) to fit Vercel's 120s timeout
+3. Verified log + trademark decided at launch, not deferred
+4. Accuracy = low false-submit rate + low skip-that-gemmed rate, measured from real PSA outcomes
+
 ## Locked decisions (this revision)
 
-1. **Monetization = tiny hard trial + credits**, not open freemium. A small lifetime free trial, then one-off credit packs ("buy N grades"). Bring-your-own-key for power/binder graders is a Phase 2 add. No "unlimited" tier.
-2. **Async job grade flow from Phase 0.** `submit → 202 + job id → poll/SSE`. The synchronous ~130s request is retired.
-3. **Verified log and the name/trademark decision are launch blockers**, not Phase 3. Founder PSA seeding starts on day one (multi-month clock).
-4. Carried from v1: Vercel (frontend) + Railway/Render (Dockerized engine) + managed Postgres + Cloudflare (DNS/WAF/Turnstile) + R2 for images. Engine secrets (incl. `ANTHROPIC_API_KEY`) on the engine host only. Clerk auth. Raw psycopg3 + numbered migrations, no ORM.
-5. **Accuracy posture = go/no-go on a 10**, not grade-band prediction. "Accurate" means a low false-SUBMIT rate (told you to pay the fee, came back below 10) and a low skip-that-gemmed rate, both from `dual_error_report()`, plus coverage (confident-call rate). The conservative `could_not_assess` default and the loupe checklist stay; the open verified log is the accuracy claim. See the Accuracy & calibration workstream below.
+1. **Monetisation = tiny trial + credits**, not open freemium. Users get a small one-time free trial (size determined by Phase 0.1 cost model), then purchase credit packs ("buy N grades"). Bring-your-own-key (power users supply their own API key) is Phase 2. No unlimited subscription.
+2. **Async job grading from Phase 0.** The v1 synchronous ~130s request hits Vercel's 120s timeout ceiling. The new flow: `POST /jobs → 202 + job_id`, then client polls `GET /jobs/:id` for status + result. Worker processes handle grading out-of-band. Solves both the timeout wall and the Cloudflare 524 charge problem.
+3. **Verified log and trademark decision are launch blockers**, not Phase 3 deferral. The log is the credibility spine and has a multi-month PSA-return seeding clock (founder starts submitting day one). Name/trademark risk scales with traffic, so decide upfront. See Phase 1.6 and 1.7.
+4. **Infra stack (carried from v1 exploration):** Vercel (frontend) + Railway or Render (Dockerized engine) + managed Postgres + Cloudflare (DNS/WAF/Turnstile bot protection) + R2 (image storage). Secrets on the engine host only. Clerk for identity. Raw psycopg3 with numbered SQL migrations, no ORM (explicit control over migration ordering and atomicity).
+5. **Accuracy posture = go/no-go on a 10**, not point-grade prediction. "Accurate" = low false-SUBMIT rate (told user to pay the fee, PSA returned <10) and low skip-that-gemmed rate, both measured from real outcomes. Coverage (confident-call rate) is also binding—an honest tool says `could-not-assess` often. The verified log publishes both rates miss-inclusive (including failures), making accuracy claims transparent. See Accuracy & calibration workstream below.
 
 ## What changed from v1, and why
 

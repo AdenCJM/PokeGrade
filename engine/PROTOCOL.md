@@ -44,9 +44,7 @@ Rules:
 
 ## 2. The centering shot (what v1 actually needs)
 
-This is the whole game for v1. Both `front_flat` and `back_flat` must clear every
-point below or the measurement is flagged low-confidence and the card routes to
-IN_HAND_CHECK rather than SUBMIT.
+This is the whole game for v1. Centering is the only pillar PokeGrade measures deterministically — the OpenCV border-width detection has a correct answer in pixels. Both `front_flat` and `back_flat` must follow every point below or the measurement is flagged low-confidence and the card routes to IN_HAND_CHECK rather than SUBMIT. A sloppy centering shot doesn't just add noise; it corrupts the one number the engine can stand behind.
 
 - **Flat.** Card on a flat surface, camera parallel to it. No tenting, no hand-held
   tilt. Tilt foreshortens one border and invents a centering defect that is not on
@@ -56,11 +54,7 @@ IN_HAND_CHECK rather than SUBMIT.
   ratios.
 - **Square-on.** Shoot perpendicular, edges parallel to the frame. Even a few
   degrees of yaw skews the left/right border ratio.
-- **Mid-grey or contrasting background, NOT matte black.** The detector segments
-  the card edge against the background. A dark-bordered card (Base-set yellow is
-  fine, but black-bordered modern, full-arts, and many Japanese cards are not) on
-  black has no edge to find. Use mid-grey, or any colour that contrasts with the
-  card's outer border. This single rule prevents the most common silent failure.
+- **Mid-grey or contrasting background, NOT matte black.** The OpenCV edge detector works by finding contrast between the card and the background. A card with a black border (modern sets, full-arts, many Japanese cards) on a black background has zero contrast—the detector simply cannot see the card edge and the measurement fails silently, producing wildly inaccurate ratios. Mid-grey, white, or any colour that contrasts with the card's outer border solves this. This single rule prevents the most common silent failure mode. Base-set yellow cards are fine on white/grey because the border is already light.
 - **Lock exposure, focus, and white balance.** Tap-and-hold to lock (AE/AF lock on
   most phones). Auto-everything hunts between the two shots and changes the edge
   contrast the segmenter depends on.
@@ -73,26 +67,17 @@ IN_HAND_CHECK rather than SUBMIT.
 
 ## 3. Value-and-centering-first gate (shoot doomed cards last)
 
-Score centering before committing to the full ritual. Most cards that will SKIP
-are killed by centering or by EV, and both are cheap to check up front, so do not
-spend a careful capture session on a card the engine will reject anyway.
+Most cards that will SKIP are killed by EV math or centering before you even need to check the soft pillars. Both are cheap to check up front, so screen them first—don't waste a careful 10-shot session on a card the engine will reject anyway. The gate cuts down on wasted effort.
 
 Order of operations per card:
 
-1. **EV check first.** If `spread_9_10 <= fee` (the 9-to-10 upgrade does not clear
-   the grading fee), the card is *not worth* it regardless of condition. SKIP. Do
-   not photograph.
-2. **Quick centering check.** Take `front_flat` to spec and let the engine measure
-   `worse_pct`. If the front worse-axis is past `ten_eligible_max_pct` (60/40 or
-   worse, i.e. `worse_pct > 55`), a PSA 10 is off the table. That is a
-   deterministic 10-killer; the card SKIPs and there is no reason to shoot the rest.
-   Past `skip_threshold_pct` (worse than 60/40) it is flagged
-   `CENTERING_OUT_OF_BOUNDS`.
-3. **Only then, the full ritual.** Cards that survive EV and the centering gate are
-   the ones worth `back_flat` plus (phase 2) the rake and macro passes.
+1. **EV check first.** If `spread_9_10 <= fee` (the 9-to-10 upgrade's upside doesn't clear the grading fee), the card is economically not worth grading regardless of condition. SKIP. Do not photograph.
 
-The gate exists to protect your time, not the engine's. A doomed card should exit
-in two shots, not ten.
+2. **Quick centering check.** Shoot one `front_flat` to spec. Let the engine measure the `worse_pct` (the larger of the two border ratios). If the worse axis is > 55% (e.g., 58/42, worse than the PSA-10 ceiling of 55/45), a PSA 10 is mathematically off the table—that's a hard 10-killer. The card SKIPs; no point photographing the rest. Past 60% (e.g., 62/38), the engine flags it `CENTERING_OUT_OF_BOUNDS` (clearly out of grading range).
+
+3. **Only cards that pass EV and centering get the full ritual.** These are the ones worth `back_flat` plus the soft-pillar close-ups (phase 2: rake and corner macros).
+
+This gate protects your time, not the engine's. A doomed card exits in two shots. A submittable card gets the full treatment.
 
 ## 4. Lens-distortion calibration (one-time, per phone)
 
