@@ -134,3 +134,8 @@ Background research informing accuracy and roadmap lives in [docs/research/](doc
 
 - [Competitive landscape](docs/research/competitive-landscape.md) — the existing AI pre-grading apps and the open verified-returns-log gap PokeGrade can own.
 - [Training data sources](docs/research/training-data-sources.md) — where to source image to official-grade data to validate and improve the verdict, and the label-leakage trap to avoid.
+
+
+## Project status
+
+PokeGrade is a local v1 prototype for validating the pre-grading workflow. It is not a production service and does not provide an official PSA, Beckett, or CGC grade. The production v2 plan is deliberately separate from this repository's current scope.
