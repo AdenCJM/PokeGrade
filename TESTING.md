@@ -17,7 +17,7 @@ Run the front-end suite in watch mode with `npm run test:watch`.
 - Import `describe`, `it`, `expect` and friends from `vitest` explicitly. No globals.
 - Rendering uses `@testing-library/react`; `@testing-library/jest-dom/vitest` matchers are loaded by `src/test/setup.tsx`, which also mocks `next/link` and cleans up after each test.
 - Modules with module-level state (`src/lib/history.ts`, `src/lib/engine.ts`) are loaded per test with `vi.resetModules()` and a dynamic import so tests never share state.
-- `server-only` is aliased to a no-op in `vitest.config.ts` so server helpers can be imported directly.
+- `server-only` is aliased to a no-op in `vitest.config.mts` so server helpers can be imported directly.
 - Never import secrets, API keys or `.env.local` values in tests.
 
 ## Layers
