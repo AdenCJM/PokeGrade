@@ -1,5 +1,7 @@
 # PokeGrade
 
+**Live demo build:** [pokegrade-topaz.vercel.app](https://pokegrade-topaz.vercel.app) (no engine attached: play the real screening run, read the raw verdict, see the log). Grading for real runs locally, see [Quick start](#quick-start).
+
 Submit photos of a modern Pokémon card and get a **verdict**: **SUBMIT**, **IN-HAND CHECK**, or **SKIP**. PokeGrade does not ask "what grade is this?" — it answers the money question: *should I pay the fee and wait weeks to grade this card?*
 
 It is a pre-grading **second opinion**, not an official PSA / Beckett / CGC grade.
