@@ -19,13 +19,14 @@ const MAX_REQUEST_BYTES = 200 * 1024 * 1024;
 const ENGINE_TIMEOUT_MS = 110_000;
 
 function engineDown(detail?: string) {
-  const configured = engineConfigured();
+  // Reached only when this deployment may grade: the engine simply did not
+  // answer. Locally that means it is not running; hosted, the host is down.
   return NextResponse.json(
     {
-      error: configured
+      error: engineConfigured()
         ? "The grading engine is not answering. Check the ENGINE_URL host and try again."
-        : "No grading engine is attached to this build. Run `npm run dev` locally to grade for real, or open the sample verdict.",
-      code: configured ? "engine_down" : "demo",
+        : "The grading engine is not answering. Start it with `npm run dev` (which launches the engine next to the web app), then try again.",
+      code: "engine_down",
       detail,
     },
     { status: 503 },

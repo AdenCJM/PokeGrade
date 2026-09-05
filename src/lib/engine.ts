@@ -3,13 +3,14 @@
 //
 // Modes:
 //   live     the engine answered /health, grading works
-//   offline  ENGINE_URL is configured but the engine did not answer
-//   demo     no engine is configured and nothing answers on localhost, so the
-//            public build shows the real sample verdict instead of grading
+//   offline  this deployment may grade, but the engine did not answer (local
+//            dev with the engine not started, or a hosted engine that is down)
+//   demo     this deployment is not allowed to grade at all (Vercel without
+//            the LIVE_GRADING opt-in), so the public build shows the real
+//            sample verdict instead
 //
-// On Vercel there is no engine unless ENGINE_URL points at a hosted one, so the
-// probe is skipped and the mode is demo. Every live grade is a paid Claude
-// Opus vision call, which is exactly why the public build does not attach one.
+// Every live grade is a paid Claude Opus vision call, which is exactly why the
+// public build does not attach one.
 import "server-only";
 
 export type EngineMode = "live" | "offline" | "demo";
@@ -69,10 +70,9 @@ export async function detectMode(): Promise<{
   mode: EngineMode;
   engine: EngineHealth | null;
 }> {
-  const configured = engineConfigured();
-  // On Vercel, demo unless live grading is explicitly allowed; nothing to probe.
+  // Demo is a policy state, not a connectivity state: nothing to probe.
   if (!liveGradingAllowed()) return { mode: "demo", engine: null };
   const engine = await probeEngine();
   if (engine) return { mode: "live", engine };
-  return { mode: configured ? "offline" : "demo", engine: null };
+  return { mode: "offline", engine: null };
 }

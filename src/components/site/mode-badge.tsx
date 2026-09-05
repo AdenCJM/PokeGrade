@@ -19,7 +19,7 @@ export default function ModeBadge() {
         mode === "live"
           ? "The grading engine answered. Screening runs for real."
           : mode === "offline"
-            ? "An engine is configured but did not answer."
+            ? "The grading engine did not answer. Start it and the badge will turn live."
             : "No grading engine is attached to this build."
       }
       aria-live="polite"

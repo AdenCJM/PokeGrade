@@ -70,7 +70,7 @@ npm run dev          # http://localhost:3000  (this Mac only)
 npm run dev:lan      # also reachable from your phone over wifi
 ```
 
-The engine logs as `engine` (blue) and Next as `web` (green). If a request returns "the grading engine is not reachable", the Python engine hasn't booted yet — give it a moment and retry, or run it alone with `uv run --project engine pokegrade serve`.
+The engine logs as `engine` (blue) and Next as `web` (green). If the badge says "Engine offline" or a request returns "the grading engine is not answering", the Python engine hasn't booted yet — give it a moment and retry, or run it alone with `uv run --project engine pokegrade serve`.
 
 ## Using it from your phone (same wifi)
 

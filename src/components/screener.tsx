@@ -305,7 +305,7 @@ function OfflineBar({ onRetry }: { onRetry: () => void }) {
       role="status"
     >
       <span>
-        An engine is configured but did not answer. Start it with <code className="font-mono text-[13px]">npm run dev</code>, then retry.
+        The grading engine did not answer. Start it with <code className="font-mono text-[13px]">npm run dev</code>, then retry. The real run below still plays.
       </span>
       <button
         type="button"
