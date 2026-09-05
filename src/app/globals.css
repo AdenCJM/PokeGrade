@@ -1,101 +1,129 @@
 @import "tailwindcss";
 
 /* ----------------------------------------------------------------------------
-   PokeGrade design tokens — "premium grading lab".
-   Dark by default; light follows the OS. Band colours are a single perceptual
-   ramp where only hue rotates (red -> amber -> green), with 10 (gem) given a
-   distinct flat gold + metallic ring rather than a brighter green.
-   The hero grade number is drawn in --fg (a near-foreground neutral) so it
-   always clears 4.5:1; band colour lives in chips, rings, and gauge fills.
+   PokeGrade design tokens: a measuring instrument, not a marketing page.
+
+   One neutral scale, three verdict bands (low / mid / high) plus mint for the
+   rare SUBMIT and gem gold for the PSA-10 motif. Every token is defined once
+   with light-dark(); the active scheme comes from color-scheme on :root, which
+   follows the OS unless the user pins data-theme="light" | "dark".
+
+   Text contrast: --fg-muted and --fg-faint are tuned to clear 4.5:1 against
+   --surface-2 (the darkest / lightest panel they sit on), not just --bg.
 ---------------------------------------------------------------------------- */
 
 :root {
-  --bg: oklch(0.16 0.012 265);
-  --surface: oklch(0.205 0.014 265);
-  --surface-2: oklch(0.25 0.014 265);
-  --border: oklch(0.32 0.012 265);
-  --fg: oklch(0.965 0.004 265);
-  --fg-muted: oklch(0.74 0.012 265);
-  --fg-faint: oklch(0.58 0.012 265);
+  color-scheme: dark;
 
-  /* bands: fg (text/icon), bg (chip fill), ring (gauge/border) */
-  --band-low-fg: oklch(0.75 0.16 25);
-  --band-low-bg: oklch(0.30 0.075 25);
-  --band-low-ring: oklch(0.58 0.17 25);
+  --bg: light-dark(oklch(0.978 0.003 80), oklch(0.155 0.01 265));
+  --surface: light-dark(oklch(1 0 0), oklch(0.2 0.012 265));
+  --surface-2: light-dark(oklch(0.962 0.004 80), oklch(0.245 0.013 265));
+  --surface-3: light-dark(oklch(0.935 0.005 80), oklch(0.3 0.013 265));
+  --border: light-dark(oklch(0.885 0.006 80), oklch(0.32 0.012 265));
+  --border-strong: light-dark(oklch(0.78 0.008 80), oklch(0.42 0.012 265));
+  --fg: light-dark(oklch(0.2 0.012 265), oklch(0.965 0.004 265));
+  --fg-muted: light-dark(oklch(0.42 0.012 265), oklch(0.78 0.01 265));
+  --fg-faint: light-dark(oklch(0.5 0.012 265), oklch(0.68 0.012 265));
 
-  --band-mid-fg: oklch(0.82 0.14 75);
-  --band-mid-bg: oklch(0.32 0.066 70);
-  --band-mid-ring: oklch(0.66 0.14 72);
+  /* Bands: fg (text), bg (chip fill), ring (gauge / border). */
+  --band-low-fg: light-dark(oklch(0.5 0.18 25), oklch(0.78 0.15 25));
+  --band-low-bg: light-dark(oklch(0.95 0.035 25), oklch(0.3 0.075 25));
+  --band-low-ring: light-dark(oklch(0.6 0.18 25), oklch(0.6 0.17 25));
 
-  --band-high-fg: oklch(0.82 0.13 152);
-  --band-high-bg: oklch(0.30 0.06 152);
-  --band-high-ring: oklch(0.62 0.13 152);
+  --band-mid-fg: light-dark(oklch(0.5 0.13 65), oklch(0.84 0.14 78));
+  --band-mid-bg: light-dark(oklch(0.96 0.05 80), oklch(0.32 0.066 70));
+  --band-mid-ring: light-dark(oklch(0.68 0.14 72), oklch(0.68 0.14 72));
 
-  --band-mint-fg: oklch(0.86 0.16 152);
-  --band-mint-bg: oklch(0.33 0.08 152);
-  --band-mint-ring: oklch(0.7 0.16 152);
+  --band-high-fg: light-dark(oklch(0.44 0.12 152), oklch(0.84 0.13 152));
+  --band-high-bg: light-dark(oklch(0.95 0.05 152), oklch(0.3 0.06 152));
+  --band-high-ring: light-dark(oklch(0.56 0.13 152), oklch(0.62 0.13 152));
 
-  --band-gem-fg: oklch(0.87 0.12 92);
-  --band-gem-bg: oklch(0.34 0.062 92);
-  --band-gem-ring: oklch(0.82 0.13 92);
+  --band-mint-fg: light-dark(oklch(0.45 0.15 152), oklch(0.87 0.16 152));
+  --band-mint-bg: light-dark(oklch(0.94 0.07 152), oklch(0.33 0.08 152));
+  --band-mint-ring: light-dark(oklch(0.54 0.16 152), oklch(0.7 0.16 152));
+
+  --band-gem-fg: light-dark(oklch(0.5 0.1 88), oklch(0.88 0.12 92));
+  --band-gem-bg: light-dark(oklch(0.96 0.055 90), oklch(0.34 0.062 92));
+  --band-gem-ring: light-dark(oklch(0.66 0.12 90), oklch(0.82 0.13 92));
+
+  /* Overlay semantics, shared by the engine's real overlay and our diagrams:
+     green = detected card edge, red = detected inner border. */
+  --ov-card: light-dark(oklch(0.62 0.17 145), oklch(0.74 0.19 145));
+  --ov-border: light-dark(oklch(0.6 0.22 27), oklch(0.68 0.22 27));
+
+  --accent: light-dark(oklch(0.26 0.03 265), oklch(0.965 0.004 265));
+  --accent-fg: light-dark(oklch(0.985 0.003 80), oklch(0.16 0.01 265));
+
+  --ring: light-dark(oklch(0.55 0.16 152), oklch(0.72 0.16 152));
+
+  --r-sm: 10px;
+  --r-md: 14px;
+  --r-lg: 22px;
 }
 
 @media (prefers-color-scheme: light) {
-  :root {
-    --bg: oklch(0.975 0.004 265);
-    --surface: oklch(1 0 0);
-    --surface-2: oklch(0.965 0.005 265);
-    --border: oklch(0.9 0.006 265);
-    --fg: oklch(0.23 0.012 265);
-    --fg-muted: oklch(0.46 0.012 265);
-    --fg-faint: oklch(0.6 0.012 265);
-
-    --band-low-fg: oklch(0.5 0.18 25);
-    --band-low-bg: oklch(0.95 0.035 25);
-    --band-low-ring: oklch(0.6 0.18 25);
-
-    --band-mid-fg: oklch(0.52 0.13 65);
-    --band-mid-bg: oklch(0.96 0.05 80);
-    --band-mid-ring: oklch(0.68 0.14 72);
-
-    --band-high-fg: oklch(0.45 0.12 152);
-    --band-high-bg: oklch(0.95 0.05 152);
-    --band-high-ring: oklch(0.56 0.13 152);
-
-    --band-mint-fg: oklch(0.46 0.15 152);
-    --band-mint-bg: oklch(0.94 0.07 152);
-    --band-mint-ring: oklch(0.54 0.16 152);
-
-    --band-gem-fg: oklch(0.5 0.1 88);
-    --band-gem-bg: oklch(0.96 0.055 90);
-    --band-gem-ring: oklch(0.66 0.12 90);
+  :root:not([data-theme="dark"]) {
+    color-scheme: light;
   }
+}
+:root[data-theme="light"] {
+  color-scheme: light;
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
 }
 
 @theme inline {
   --color-bg: var(--bg);
   --color-surface: var(--surface);
   --color-surface2: var(--surface-2);
+  --color-surface3: var(--surface-3);
   --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
   --color-fg: var(--fg);
   --color-muted: var(--fg-muted);
   --color-faint: var(--fg-faint);
-  --font-display: var(--font-display), ui-sans-serif, system-ui, sans-serif;
+  --color-accent: var(--accent);
+  --color-accent-fg: var(--accent-fg);
   --font-sans: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-mono), ui-monospace, "SF Mono", Menlo, monospace;
+  --radius-sm: var(--r-sm);
+  --radius-md: var(--r-md);
+  --radius-lg: var(--r-lg);
 }
 
 html {
-  color-scheme: dark light;
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
 }
 
 body {
   background: var(--bg);
   color: var(--fg);
   font-family: var(--font-sans);
+  font-size: 15px;
+  line-height: 1.5;
   -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
-/* Band carrier: set the three local vars, then children read --bfg/--bbg/--bring. */
+@media (min-width: 640px) {
+  body {
+    font-size: 16px;
+  }
+}
+
+::selection {
+  background: color-mix(in oklch, var(--band-gem-ring) 35%, transparent);
+}
+
+:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+/* Band carrier: set the three local vars, children read --bfg/--bbg/--bring. */
 .band-low {
   --bfg: var(--band-low-fg);
   --bbg: var(--band-low-bg);
@@ -122,17 +150,54 @@ body {
   --bring: var(--band-gem-ring);
 }
 
-/* The grade number uses the neutral foreground for contrast; tabular figures
-   keep multi-digit alignment steady. */
-.grade-figure {
-  font-family: var(--font-display);
-  font-feature-settings: "tnum" 1;
+/* Instrument readouts: mono, tabular, tight. */
+.readout {
+  font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
-  letter-spacing: -0.02em;
-  line-height: 0.9;
+  letter-spacing: -0.03em;
+  line-height: 0.95;
 }
 
-/* Gem (10) gets a thin metallic ring — structural specialness, not a gradient. */
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Section eyebrow label. 12px floor for anything a reader must read. */
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--fg-faint);
+}
+
+/* Display headings. */
+.display {
+  letter-spacing: -0.035em;
+  line-height: 1.02;
+  font-weight: 600;
+}
+
+/* Three-tier panels for the result view. */
+.panel-primary {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+}
+.panel-secondary {
+  border-top: 1px solid var(--border);
+}
+
+/* Hairline ruler texture for the hero diagram background. */
+.ruler {
+  background-image:
+    linear-gradient(to right, color-mix(in oklch, var(--border) 70%, transparent) 1px, transparent 1px),
+    linear-gradient(to bottom, color-mix(in oklch, var(--border) 70%, transparent) 1px, transparent 1px);
+  background-size: 24px 24px;
+  mask-image: radial-gradient(ellipse 70% 70% at 50% 40%, black 30%, transparent 75%);
+}
+
+/* Gem (10) gets a thin metallic ring: structural specialness, not a gradient. */
 .gem-ring {
   box-shadow:
     0 0 0 1px var(--band-gem-ring),
@@ -145,25 +210,25 @@ body {
     transform: translateY(-10%);
     opacity: 0;
   }
-  20% {
+  15% {
     opacity: 1;
   }
-  80% {
+  85% {
     opacity: 1;
   }
   100% {
-    transform: translateY(820%);
+    transform: translateY(1200%);
     opacity: 0;
   }
 }
 .scanline {
-  animation: scan 2.1s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  animation: scan 2.4s cubic-bezier(0.4, 0, 0.2, 1) infinite;
 }
 
 @keyframes pulse-soft {
   0%,
   100% {
-    opacity: 0.55;
+    opacity: 0.5;
   }
   50% {
     opacity: 1;
@@ -173,9 +238,101 @@ body {
   animation: pulse-soft 1.6s ease-in-out infinite;
 }
 
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.rise {
+  animation: rise 360ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+/* Hero diagram: measurement lines draw in once. */
+@keyframes draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+.draw {
+  stroke-dasharray: 1400;
+  stroke-dashoffset: 1400;
+  animation: draw 1.6s cubic-bezier(0.2, 0.7, 0.2, 1) 200ms forwards;
+}
+.draw-late {
+  stroke-dasharray: 600;
+  stroke-dashoffset: 600;
+  animation: draw 900ms cubic-bezier(0.2, 0.7, 0.2, 1) 1200ms forwards;
+}
+@keyframes fade-in {
+  to {
+    opacity: 1;
+  }
+}
+.fade-late {
+  opacity: 0;
+  animation: fade-in 500ms ease-out 1700ms forwards;
+}
+
+/* Ladder pin eases into place. */
+.pin {
+  transition: left 900ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
 @media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
   .scanline,
-  .pulse-soft {
+  .pulse-soft,
+  .rise {
     animation: none;
   }
+  .draw,
+  .draw-late {
+    stroke-dashoffset: 0;
+    animation: none;
+  }
+  .fade-late {
+    opacity: 1;
+    animation: none;
+  }
+  .pin {
+    transition: none;
+  }
+}
+
+/* Details disclosure chevron. */
+details > summary {
+  list-style: none;
+  cursor: pointer;
+}
+details > summary::-webkit-details-marker {
+  display: none;
+}
+details[open] .chev {
+  transform: rotate(180deg);
+}
+.chev {
+  transition: transform 200ms ease;
+}
+
+/* Number inputs: no spinners. */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type="number"] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+/* Sticky action bar on phones respects the home indicator. */
+.safe-bottom {
+  padding-bottom: max(12px, env(safe-area-inset-bottom));
 }

@@ -43,7 +43,7 @@ Centering measured 58.5/41.5 on the worse axis — past the PSA-10 cutoff — wh
   Claude Opus 4.8 (adjudicator)   rules corners/edges/surface, writes the loupe checklist
 ```
 
-`npm run dev` starts both the Python engine and Next together. **v1 is local-only** — the engine + SQLite ledger run on your Mac (they can't run on Vercel's serverless).
+`npm run dev` starts both the Python engine and Next together. **Grading is local-only**: the engine + SQLite ledger run on your Mac (they can't run on Vercel's serverless). The front end itself deploys to Vercel as a **demo build**: the full UI, a real screening run to play back, the raw verdict JSON, and the verified-log table, with no engine attached and no paid Claude calls reachable from the public URL. See [Deploying the front end](#deploying-the-front-end).
 
 ## v1 vs v2
 
@@ -107,13 +107,35 @@ uv run --project engine pokegrade calibrate-lens <chessboard-folder>
 - **Browser uploads degrade provenance.** Phones strip/alter EXIF, so capture validation is weaker on the web path than the local CLI ingest.
 - **Centering's ±2pp target is conditional** — it assumes the centering shot follows the guidance and a lens-calibration profile is loaded.
 
+## Deploying the front end
+
+The Next.js app is a zero-config Vercel deploy. With no engine configured it runs in **demo mode**: `/api/health` reports `demo`, the screener explains that nothing on the page analyses your card, and the primary action plays back the real Pikachu ex run instead. Photos added on the page never leave the browser.
+
+```bash
+vercel link          # once, creates/links the project
+vercel deploy --prod # production URL
+```
+
+What the deployed build serves:
+
+- `/` the landing page + screener (demo mode) + the real run + how it works + the log
+- `/sample` the real verdict on its own shareable page (with its own OG image)
+- `/sample/verdict.json` the reconstructed engine response for that run
+- `/api/health` `{ mode: "live" | "offline" | "demo" }`
+
+Refresh the verified-log table on the site with `./scripts/ledger-snapshot.sh` (writes `src/data/ledger-snapshot.json` from the local SQLite ledger), then commit.
+
+**Turning live grading on for a deployed URL is deliberately hard.** On Vercel the build stays in demo mode unless both `ENGINE_URL` (a hosted engine) and `LIVE_GRADING=1` are set. Every live grade is a paid Claude call, and the proxy has no auth or rate limiting yet (v2 scope in [`docs/production-readiness-plan-v2.md`](docs/production-readiness-plan-v2.md)), so a public URL must never grade by accident. Two more platform facts before you try: Vercel rejects request bodies over about 4.5 MB, so original phone photos would need client-side downscaling on that path, and the grade route's timeout is 110 s inside a 120 s function limit.
+
 ## Configuration
 
-| Env var             | Default                 | Notes                                                           |
-| ------------------- | ----------------------- | --------------------------------------------------------------- |
-| `ANTHROPIC_API_KEY` | (required)              | Used by the engine's adjudicator. Without it, centering + verdict still run; soft pillars (corners, edges, surface) route to `could-not-assess` instead. |
-| `MODEL`             | `claude-opus-4-8`       | Adjudicator model. Try `claude-sonnet-4-6` for lower cost and faster runs (trades accuracy). |
-| `ENGINE_URL`        | `http://127.0.0.1:8000` | Where the Next.js route reaches the Python engine. Only needed if running the engine on a different host. |
+| Env var                | Default                 | Notes                                                           |
+| ---------------------- | ----------------------- | --------------------------------------------------------------- |
+| `ANTHROPIC_API_KEY`    | (required for grading)  | Used by the engine's adjudicator. Without it, centering + verdict still run; soft pillars (corners, edges, surface) route to `could-not-assess` instead. |
+| `MODEL`                | `claude-opus-4-8`       | Adjudicator model. Try `claude-sonnet-4-6` for lower cost and faster runs (trades accuracy). |
+| `ENGINE_URL`           | `http://127.0.0.1:8000` | Where the Next.js route reaches the Python engine. Only needed if running the engine on a different host. |
+| `LIVE_GRADING`         | unset                   | Deployed builds (Vercel) only grade when this is `1` **and** `ENGINE_URL` is set. Local `npm run dev` ignores it. |
+| `ENGINE_SHARED_SECRET` | unset                   | Sent to the engine as `Authorization: Bearer ...` on every call. The v1 engine ignores it; the v2 engine will verify it. |
 
 ## Tests
 
@@ -125,7 +147,7 @@ The two highest-value targets — the centering measurement and the verdict deci
 
 ## Stack
 
-Next.js 16 (App Router) · React 19 · TypeScript · Tailwind v4 — front-end.
+Next.js 16 (App Router) · React 19 · TypeScript · Tailwind v4 · Geist + Geist Mono — front-end.
 Python (uv) · FastAPI · OpenCV · Pydantic · SQLite · `anthropic` — engine.
 
 ## Research

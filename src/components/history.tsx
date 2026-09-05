@@ -15,19 +15,17 @@ export default function History({
 
   return (
     <div>
-      <div className="mb-2 flex items-center justify-between">
-        <span className="text-xs font-medium uppercase tracking-wide text-faint">
-          This session
-        </span>
+      <div className="mb-3 flex items-center justify-between">
+        <span className="eyebrow">Screened on this device</span>
         <button
           type="button"
           onClick={onClear}
-          className="text-xs text-faint transition hover:text-muted"
+          className="text-[13px] text-faint transition hover:text-fg"
         >
           Clear
         </button>
       </div>
-      <div className="flex gap-3 overflow-x-auto pb-2">
+      <div className="-mx-1 flex gap-3 overflow-x-auto px-1 pb-2">
         {entries.map((e) => {
           const meta = verdictMeta(e.response.verdict);
           const name = e.response.soft_pillars.card_read.name;
@@ -38,7 +36,7 @@ export default function History({
               onClick={() => onOpen(e)}
               className={`band band-${meta.band} group w-28 shrink-0 text-left`}
             >
-              <div className="relative overflow-hidden rounded-lg border border-border">
+              <div className="relative overflow-hidden rounded-lg border border-border bg-surface2">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={e.thumb}
@@ -46,16 +44,16 @@ export default function History({
                   className="aspect-[3/4] w-full object-cover transition group-hover:opacity-90"
                 />
                 <span
-                  className="absolute bottom-1 right-1 rounded-md px-1.5 py-0.5 text-[11px] font-semibold"
+                  className="absolute bottom-1.5 right-1.5 rounded-md px-1.5 py-0.5 font-mono text-[12px] font-medium"
                   style={{ background: "var(--bbg)", color: "var(--bfg)" }}
                 >
                   {meta.label}
                 </span>
               </div>
-              <div className="mt-1 truncate text-xs text-muted">
-                {name ?? "Unidentified"}
+              <div className="mt-1.5 truncate text-[13px] text-fg">{name ?? "Unidentified"}</div>
+              <div className="text-[12px] text-faint">
+                {new Date(e.at).toLocaleDateString("en-AU", { day: "numeric", month: "short" })}
               </div>
-              <div className="text-[11px] text-faint">{meta.blurb}</div>
             </button>
           );
         })}

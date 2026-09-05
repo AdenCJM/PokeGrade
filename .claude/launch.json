@@ -4,9 +4,24 @@
     {
       "name": "pokegrade",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev"],
+      "runtimeArgs": [
+        "run",
+        "dev"
+      ],
       "port": 3000,
       "autoPort": true
+    },
+    {
+      "name": "pokegrade-web",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "dev:web",
+        "--",
+        "-p",
+        "3001"
+      ],
+      "port": 3001
     }
   ]
 }

@@ -49,3 +49,6 @@ __pycache__/
 engine/.pytest_cache/
 engine/.data/
 engine/.env
+
+# local visual QA screenshots
+.qa/

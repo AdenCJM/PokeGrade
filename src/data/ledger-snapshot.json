@@ -1,0 +1,13 @@
+{
+  "snapshot_date": "2026-09-05",
+  "predictions": 7,
+  "psa_returns": 0,
+  "first_prediction": "2026-06-28",
+  "rows": [{"date":"2026-07-06","name":"Pikachu ex","set_name":null,"number":"277/217","verdict":"SKIP","confidence":"high","limiting_pillar":"centering","centering_front":"58.5/41.5","centering_back":"53.8/46.2","reason_codes":"[\"CENTERING_CAPS_BELOW_10\"]","ev_estimate":835.0,"psa_grade":null,"cert":null},
+{"date":"2026-06-28","name":"Pikachu ex","set_name":"ASC (ASC EN set symbol)","number":"277/217","verdict":"IN_HAND_CHECK","confidence":"medium","limiting_pillar":"surface","centering_front":"51.4/48.6","centering_back":"53.8/46.2","reason_codes":"[\"SOFT_PILLAR_COULD_NOT_ASSESS:corners\",\"SOFT_PILLAR_COULD_NOT_ASSESS:edges\",\"SOFT_PILLAR_COULD_NOT_ASSESS:surface\"]","ev_estimate":540.0,"psa_grade":null,"cert":null},
+{"date":"2026-06-28","name":"Pikachu ex","set_name":"ASC EN","number":"277/217","verdict":"SKIP","confidence":"high","limiting_pillar":"centering","centering_front":"58.5/41.5","centering_back":"59.6/40.4","reason_codes":"[\"CENTERING_CAPS_BELOW_10\"]","ev_estimate":440.0,"psa_grade":null,"cert":null},
+{"date":"2026-06-28","name":null,"set_name":null,"number":null,"verdict":"SKIP","confidence":"high","limiting_pillar":"centering","centering_front":"66.1/33.9","centering_back":null,"reason_codes":"[\"CENTERING_OUT_OF_BOUNDS\"]","ev_estimate":95.0,"psa_grade":null,"cert":null},
+{"date":"2026-06-28","name":null,"set_name":null,"number":null,"verdict":"SKIP","confidence":"high","limiting_pillar":"centering","centering_front":"66.1/33.9","centering_back":null,"reason_codes":"[\"CENTERING_OUT_OF_BOUNDS\"]","ev_estimate":95.0,"psa_grade":null,"cert":null},
+{"date":"2026-06-28","name":null,"set_name":null,"number":null,"verdict":"SKIP","confidence":"high","limiting_pillar":"centering","centering_front":"66.1/33.9","centering_back":null,"reason_codes":"[\"CENTERING_OUT_OF_BOUNDS\"]","ev_estimate":95.0,"psa_grade":null,"cert":null},
+{"date":"2026-06-28","name":null,"set_name":null,"number":null,"verdict":"SKIP","confidence":"high","limiting_pillar":"centering","centering_front":"66.1/33.9","centering_back":null,"reason_codes":"[\"CENTERING_OUT_OF_BOUNDS\"]","ev_estimate":95.0,"psa_grade":null,"cert":null}]
+}
