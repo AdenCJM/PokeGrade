@@ -19,7 +19,7 @@ export function Wordmark() {
 }
 
 const LINKS = [
-  { href: "/#screen", label: "Screen" },
+  { href: "/#screen", label: "Screen a card" },
   { href: "/#real-run", label: "Real run" },
   { href: "/#how", label: "How it works" },
   { href: "/#log", label: "The log" },
@@ -54,6 +54,27 @@ export default function Nav() {
           <ThemeToggle />
         </div>
       </div>
+      <nav aria-label="Sections" className="border-t border-border md:hidden">
+        <div className="mx-auto flex w-full max-w-6xl gap-1 overflow-x-auto px-3 py-1.5">
+          {LINKS.map((l) => (
+            <Link
+              key={l.href}
+              href={l.href}
+              className="shrink-0 rounded-md px-2.5 py-1 text-[13px] text-muted transition hover:bg-surface2 hover:text-fg"
+            >
+              {l.label}
+            </Link>
+          ))}
+          <a
+            href={GITHUB_URL}
+            target="_blank"
+            rel="noreferrer"
+            className="shrink-0 rounded-md px-2.5 py-1 text-[13px] text-muted transition hover:bg-surface2 hover:text-fg"
+          >
+            GitHub
+          </a>
+        </div>
+      </nav>
     </header>
   );
 }
