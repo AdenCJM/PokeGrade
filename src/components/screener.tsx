@@ -228,7 +228,9 @@ export default function Screener() {
                   </button>
                   <p className="mt-2 text-center text-[12px] text-faint">
                     {front
-                      ? "This build cannot analyse your photos. They stay in this browser."
+                      ? mode === "offline"
+                        ? "Your photos stay in this browser until the engine answers. Retry above once it is running."
+                        : "This build cannot analyse your photos. They stay in this browser."
                       : mode === null
                         ? "Checking for a grading engine."
                         : "Pikachu ex, front and back only, screened 6 July 2026."}
