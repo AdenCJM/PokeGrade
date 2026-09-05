@@ -39,7 +39,7 @@ export default function Home() {
             <>
               {SAMPLE_META.title}, screened {SAMPLE_META.screened_label}. {SAMPLE_META.capture}{" "}
               Everything below is what the engine returned, not a mock-up.{" "}
-              <Link href="/sample/verdict.json" className="underline decoration-border-strong underline-offset-4 hover:text-fg">
+              <Link href="/sample/verdict.json" target="_blank" rel="noreferrer" className="underline decoration-border-strong underline-offset-4 hover:text-fg">
                 Raw JSON
               </Link>
               .

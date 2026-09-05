@@ -30,7 +30,7 @@ export default function SamplePage() {
             {SAMPLE_META.capture} Everything below is what the engine returned,
             not a mock-up. The verdict and measurements come from the ledger;
             the model&rsquo;s written narrative was not retained.{" "}
-            <Link href="/sample/verdict.json" className="underline decoration-border-strong underline-offset-4 hover:text-fg">
+            <Link href="/sample/verdict.json" target="_blank" rel="noreferrer" className="underline decoration-border-strong underline-offset-4 hover:text-fg">
               Raw JSON
             </Link>
             .

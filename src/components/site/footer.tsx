@@ -46,8 +46,7 @@ export default function Footer({
           to PokeGrade.AI.
         </p>
         <p className="mt-4 font-mono text-[12px] text-faint">
-          engine {engineVersion} · standards {standardsVersion} · centering keeps
-          PSA&rsquo;s spelling
+          {`engine ${engineVersion} · standards ${standardsVersion} · centering keeps PSA’s spelling`}
         </p>
       </div>
     </footer>

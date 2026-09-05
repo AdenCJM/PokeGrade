@@ -284,6 +284,8 @@ function DemoBar({ onPlay }: { onPlay: () => void }) {
         </button>
         <Link
           href="/sample/verdict.json"
+          target="_blank"
+          rel="noreferrer"
           className="inline-flex h-9 items-center rounded-lg border border-border-strong px-3 text-[13px] font-medium text-fg transition hover:bg-surface"
         >
           Raw verdict JSON

@@ -454,6 +454,8 @@ export function RunItYourself() {
             </a>
             <Link
               href="/sample/verdict.json"
+              target="_blank"
+              rel="noreferrer"
               className="inline-flex h-10 items-center rounded-xl border border-border-strong px-4 text-[14px] font-medium text-fg transition hover:bg-surface2"
             >
               Raw verdict JSON
