@@ -25,7 +25,7 @@ export default function Home() {
           id="screen"
           eyebrow="Screen a card"
           title="A front photo is required. The back and close-ups make the call sharper."
-          lead="Shoot flat and square-on, filling the frame, on a plain mid-grey background. The engine measures pixels, so the shot is the measurement."
+          lead="Shoot flat and square-on, filling the frame, on a plain mid-grey background. Centering is measured from the pixels, so the shot matters as much as the card."
           className="border-t border-border"
         >
           <Screener />

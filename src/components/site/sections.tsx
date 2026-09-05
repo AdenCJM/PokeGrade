@@ -88,7 +88,7 @@ const STEPS = [
     n: "01",
     title: "Measure",
     glyph: <MeasureGlyph />,
-    body: "Detect the card, warp it square, measure the four border widths in pixels. The worse axis maps onto the PSA centering ladder. Past 55/45 on the front, a 10 is off the table. That is arithmetic, not opinion.",
+    body: "Detect the card, warp it square and measure the four border widths in pixels. The worse axis maps onto the PSA centering ladder, and past 55/45 on the front a 10 is off the table whatever the rest of the card looks like.",
   },
   {
     n: "02",
@@ -111,7 +111,7 @@ const VERDICT_TILES: { v: Verdict; body: string }[] = [
   },
   {
     v: "IN_HAND_CHECK",
-    body: "Centering looks fine, but a flat photo cannot prove a corner or a foil surface is clean. Rather than flatter the card, PokeGrade hands you coordinates: which pillar, where to look, what a loupe should tell you. Ten minutes at your desk turns this into a submit or a skip.",
+    body: "Centering looks fine, but a flat photo cannot prove a corner or a foil surface is clean. Rather than flatter the card, PokeGrade gives you a checklist with the pillar, the spot on the card and what to look for under a loupe. Ten minutes at your desk usually turns this into a submit or a skip.",
   },
   {
     v: "SKIP",
@@ -145,7 +145,7 @@ export function HowItWorks() {
       </ol>
 
       <div className="mt-14">
-        <p className="eyebrow">Three verdicts, one question</p>
+        <p className="eyebrow">The three verdicts</p>
         <div className="mt-4 grid gap-4 md:grid-cols-3">
           {VERDICT_TILES.map(({ v, body }) => {
             const m = verdictMeta(v);
@@ -177,12 +177,11 @@ export function HowItWorks() {
         <div className="mt-6 max-w-3xl space-y-3 text-[15px] leading-relaxed text-muted">
           <p>
             Expect in-hand check on most clean-looking cards shot front and
-            back only. That is not the tool dodging the question. A flat photo
-            cannot see a 0.2 mm nick on a corner or a hairline across a foil,
-            and anything that calls those cards clean is guessing with your
-            submission fee. So instead of a number you get coordinates, and
-            shooting corner close-ups converts a lot of these cards before you
-            even start.
+            back only. A flat photo cannot see a 0.2 mm nick on a corner or a
+            hairline across a foil, and anything that calls those cards clean
+            is guessing with your submission fee. So you get a checklist with
+            locations instead of a number, and shooting corner close-ups
+            settles a lot of these cards before you even start.
           </p>
           <p>
             The share of runs landing on in-hand check is published in the log
@@ -208,7 +207,7 @@ const MATHS = [
   {
     figure: "55 / 45",
     sub: "the PSA-10 centering gate",
-    body: "Worse than this on either front axis and the 10 is gone before condition is even discussed. It is the one part of grading that is a measurement rather than an opinion, so PokeGrade measures it first.",
+    body: "Worse than this on either front axis and the 10 is gone before condition is even discussed. It is the one part of grading you can check with a ruler, so PokeGrade checks it first.",
   },
   {
     figure: "58.5 / 41.5",
@@ -265,7 +264,7 @@ export function Honesty() {
       id="honesty"
       eyebrow="Limits"
       title="What it won't pretend to see"
-      lead="A verdict is only as honest as its blind spots are visible. These are the four that matter, and how the engine behaves when it hits them."
+      lead="Four blind spots matter for a photo-based screen. This is what each one hides and what the engine does when it hits it."
     >
       <div className="grid gap-x-10 gap-y-8 md:grid-cols-2">
         {LIMITS.map((l) => (
@@ -421,7 +420,7 @@ export function RunItYourself() {
       id="run"
       eyebrow="Run it yourself"
       title="The engine runs on your machine, so it can grade for real."
-      lead="Your key, your cards, your ledger. Five minutes from clone to a verdict on a card you are holding."
+      lead="It runs on your own API key and writes to your own ledger. Five minutes from clone to a verdict on a card you are holding."
     >
       <div className="grid gap-8 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
         <pre className="overflow-x-auto rounded-[var(--r-lg)] border border-border bg-surface p-5 font-mono text-[13px] leading-relaxed text-fg">

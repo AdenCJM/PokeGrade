@@ -281,7 +281,8 @@ export default function Uploader(props: UploaderProps) {
           </div>
           <p className="mt-3 text-[13px] leading-relaxed text-faint">
             If the 9-to-10 spread does not clear the fee, the verdict is skip no
-            matter how the card looks. That is the money question, asked first.
+            matter how the card looks. The verdict checks that before anything
+            else.
           </p>
         </div>
       </details>

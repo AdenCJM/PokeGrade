@@ -267,11 +267,11 @@ function DemoBar({ onPlay }: { onPlay: () => void }) {
           Demo build
         </span>
         <p className="text-[14px] leading-relaxed text-muted">
-          The engine runs on a machine, not on this page, so nothing here will
-          analyse your card. What you can do instead: play a real screening run
-          end to end on a card I shot myself, read the raw JSON it produced, or
-          clone the repo and run the whole thing locally in about five minutes.
-          Nothing you add to this page leaves your browser.
+          The engine is not attached to this page, so nothing here analyses
+          your card. You can play a real screening run end to end on a card I
+          shot myself, read the raw JSON it produced, or clone the repo and run
+          the whole thing locally in about five minutes. Nothing you add to
+          this page leaves your browser.
         </p>
       </div>
       <div className="mt-3 flex flex-wrap gap-2">
