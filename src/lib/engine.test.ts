@@ -90,10 +90,14 @@ describe("detectMode", () => {
     expect(result.engine).toEqual(body);
   });
 
-  it("returns demo locally when nothing answers and no engine is configured", async () => {
+  // Regression: ISSUE-005 — a local engine outage was reported as the public
+  // "demo build" state, telling a local user to "run npm run dev locally".
+  // Found by /qa on 2026-09-05
+  // Report: .gstack/qa-reports/qa-report-pokegrade-topaz-vercel-app-2026-09-05.md
+  it("returns offline locally when nothing answers, never demo", async () => {
     vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("ECONNREFUSED")));
     const { detectMode } = await load();
-    await expect(detectMode()).resolves.toEqual({ mode: "demo", engine: null });
+    await expect(detectMode()).resolves.toEqual({ mode: "offline", engine: null });
   });
 });
 
