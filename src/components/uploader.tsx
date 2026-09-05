@@ -24,7 +24,10 @@ type PickProps = {
 // A <label> wrapping the file input, so a tap opens the native picker directly.
 function PickButton({ onPick, capture, multiple, children, className, ariaLabel }: PickProps) {
   return (
-    <label aria-label={ariaLabel} className={`${className ?? ""} cursor-pointer`}>
+    <label
+      aria-label={ariaLabel}
+      className={`${className ?? ""} cursor-pointer focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-[var(--ring)]`}
+    >
       {children}
       <input
         type="file"
