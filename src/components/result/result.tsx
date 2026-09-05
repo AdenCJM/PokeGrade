@@ -209,7 +209,7 @@ function CenteringPanel({ r, id }: { r: GradeResponse; id: string }) {
         <div className="relative mx-auto w-full max-w-[300px] overflow-hidden rounded-xl border border-border bg-surface2 sm:mx-0" style={{ aspectRatio: "63 / 88" }}>
           {src ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={src} alt="The engine's centering overlay: green is the detected card edge, red is the printed border and the four measured gaps." className="h-full w-full object-cover" />
+            <img src={src} alt="The engine's centering overlay: green is the detected card edge, red is the printed border and the four measured gaps." className="h-full w-full object-cover" loading="lazy" decoding="async" />
           ) : (
             <div className="grid h-full place-items-center p-6 text-center text-[13px] text-faint">No overlay: the card edge was not detected.</div>
           )}
