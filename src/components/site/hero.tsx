@@ -49,6 +49,10 @@ export default function Hero() {
             <div className="mx-auto mt-2 max-w-[360px]">
               <HeroDiagram />
             </div>
+            <p className="mt-1 text-center text-[12px] leading-relaxed text-faint">
+              The four border widths the engine measures, in pixels. A wider left
+              border than right is what tilts the ratio.
+            </p>
             <div className="mt-2 flex flex-wrap items-end justify-between gap-x-6 gap-y-3 border-t border-border pt-5">
               <div>
                 <div className="readout text-[2.6rem] font-medium text-fg sm:text-[3rem]">

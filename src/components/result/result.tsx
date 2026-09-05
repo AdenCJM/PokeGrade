@@ -163,7 +163,7 @@ function VerdictHero({ r, id }: { r: GradeResponse; id: string }) {
         </div>
         <div className="w-full md:max-w-sm">
           <div className="flex flex-wrap items-center gap-2">
-            <ConfidenceChip c={r.confidence} />
+            <ConfidenceChip c={r.confidence} label="verdict confidence" />
             {r.limiting_pillar ? (
               <span className="inline-flex items-center rounded-md border border-border bg-surface px-2 py-1 font-mono text-[12px] text-muted">
                 limiting pillar · {PILLAR_LABEL[r.limiting_pillar].toLowerCase()}
@@ -203,7 +203,7 @@ function CenteringPanel({ r, id }: { r: GradeResponse; id: string }) {
         <h3 id={headingId} className="eyebrow">
           Centering, measured
         </h3>
-        {f ? <ConfidenceChip c={f.confidence} /> : null}
+        {f ? <ConfidenceChip c={f.confidence} label="measurement confidence" /> : null}
       </div>
       <div className="mt-4 grid gap-6 sm:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)]">
         <div className="relative mx-auto w-full max-w-[300px] overflow-hidden rounded-xl border border-border bg-surface2 sm:mx-0" style={{ aspectRatio: "63 / 88" }}>
@@ -509,6 +509,8 @@ export default function Result({
             </Link>
             <Link
               href="/sample/verdict.json"
+              target="_blank"
+              rel="noreferrer"
               className="inline-flex h-11 items-center rounded-xl border border-border-strong px-4 text-[14px] font-medium text-fg transition hover:bg-surface2"
             >
               Raw JSON
