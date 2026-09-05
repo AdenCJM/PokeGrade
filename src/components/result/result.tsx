@@ -48,31 +48,55 @@ function ConfidenceChip({ c, label = "confidence" }: { c: Confidence; label?: st
   );
 }
 
+/** Copy text with the async clipboard API, falling back to a selection copy
+ * for browsers or contexts that refuse it. Returns whether anything copied. */
+export async function copyText(text: string): Promise<boolean> {
+  try {
+    if (navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(text);
+      return true;
+    }
+  } catch {
+    /* fall through to the legacy path */
+  }
+  try {
+    const ta = document.createElement("textarea");
+    ta.value = text;
+    ta.setAttribute("readonly", "");
+    ta.style.position = "fixed";
+    ta.style.opacity = "0";
+    document.body.appendChild(ta);
+    ta.select();
+    const ok = document.execCommand("copy");
+    document.body.removeChild(ta);
+    return ok;
+  } catch {
+    return false;
+  }
+}
+
 function CopySummary({ r, kind }: { r: GradeResponse; kind: ResultKind }) {
-  const [copied, setCopied] = useState(false);
+  const [state, setState] = useState<"idle" | "copied" | "failed">("idle");
   return (
     <button
       type="button"
       onClick={async () => {
-        try {
-          await navigator.clipboard.writeText(
-            buildSummary(r, {
-              sampleLabel: kind === "sample" ? `Real screening run, ${SAMPLE_META.screened_label}` : undefined,
-            }),
-          );
-          setCopied(true);
-          window.setTimeout(() => setCopied(false), 1800);
-        } catch {
-          /* clipboard unavailable */
-        }
+        const ok = await copyText(
+          buildSummary(r, {
+            sampleLabel: kind === "sample" ? `Real screening run, ${SAMPLE_META.screened_label}` : undefined,
+          }),
+        );
+        setState(ok ? "copied" : "failed");
+        window.setTimeout(() => setState("idle"), 1800);
       }}
+      aria-live="polite"
       className="inline-flex h-9 items-center gap-2 rounded-lg border border-border-strong px-3 text-[13px] font-medium text-fg transition hover:bg-surface2"
     >
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinejoin="round" aria-hidden="true">
         <rect x="9" y="9" width="11" height="11" rx="2" />
         <path d="M5 15V5a2 2 0 0 1 2-2h10" />
       </svg>
-      {copied ? "Copied" : "Copy summary"}
+      {state === "copied" ? "Copied" : state === "failed" ? "Could not copy" : "Copy summary"}
     </button>
   );
 }
