@@ -29,7 +29,9 @@ rows=$(sqlite3 -json "$DB" "
     a.cert as cert
   from predictions p
   left join cards c on c.card_id = p.card_id
-  left join actuals a on a.card_id = p.card_id
+  left join actuals a on a.id = (
+    select id from actuals where card_id = p.card_id order by id desc limit 1
+  )
   order by p.created_at desc;
 ")
 total=$(sqlite3 "$DB" "select count(*) from predictions;")

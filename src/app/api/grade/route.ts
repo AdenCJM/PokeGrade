@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { engineConfigured, engineHeaders, engineUrl } from "@/lib/engine";
+import { engineConfigured, engineHeaders, engineUrl, liveGradingAllowed } from "@/lib/engine";
 
 // Node runtime: this route proxies multipart uploads to the FastAPI engine
 // (deterministic centering + EV verdict + ledger + Claude adjudicator). The
@@ -33,6 +33,19 @@ function engineDown(detail?: string) {
 }
 
 export async function POST(req: Request) {
+  // Refuse before touching the body: a deployment that is not allowed to grade
+  // must never forward an upload, whatever the UI showed.
+  if (!liveGradingAllowed()) {
+    return NextResponse.json(
+      {
+        error:
+          "This deployment does not grade. Run `npm run dev` locally to grade for real, or open the sample verdict.",
+        code: "demo",
+      },
+      { status: 503 },
+    );
+  }
+
   const declaredLen = Number(req.headers.get("content-length") ?? 0);
   if (declaredLen > MAX_REQUEST_BYTES) {
     return NextResponse.json(

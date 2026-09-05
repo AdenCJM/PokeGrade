@@ -32,7 +32,8 @@ export default function Screener() {
   const [value, setValue] = useState<ValueFields>(EMPTY_VALUE);
 
   const [status, setStatus] = useState<Status>("idle");
-  const [preparing, setPreparing] = useState(false);
+  const [pendingPrep, setPendingPrep] = useState(0);
+  const preparing = pendingPrep > 0;
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<{
     response: GradeResponse;
@@ -59,13 +60,13 @@ export default function Screener() {
       setError("That file is not an image. Use a JPEG, PNG or HEIC.");
       return;
     }
-    setPreparing(true);
+    setPendingPrep((n) => n + 1);
     try {
       set(await prepareImage(file));
     } catch (e) {
       setError(e instanceof Error ? e.message : "Could not read that image.");
     } finally {
-      setPreparing(false);
+      setPendingPrep((n) => Math.max(0, n - 1));
     }
   }, []);
 

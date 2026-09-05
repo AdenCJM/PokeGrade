@@ -28,6 +28,15 @@ export function engineConfigured(): boolean {
   return Boolean(process.env.ENGINE_URL?.trim());
 }
 
+/** Whether this deployment may grade at all. Locally (no VERCEL env) grading
+ * is always allowed. On Vercel it needs BOTH an explicit engine and the
+ * LIVE_GRADING=1 opt-in, so setting ENGINE_URL alone can never expose paid
+ * grading on a public URL. */
+export function liveGradingAllowed(): boolean {
+  if (!process.env.VERCEL) return true;
+  return engineConfigured() && process.env.LIVE_GRADING?.trim() === "1";
+}
+
 export function engineUrl(): string {
   return process.env.ENGINE_URL?.trim().replace(/\/+$/, "") || DEFAULT_ENGINE_URL;
 }
@@ -61,8 +70,8 @@ export async function detectMode(): Promise<{
   engine: EngineHealth | null;
 }> {
   const configured = engineConfigured();
-  // On Vercel with no configured engine there is nothing to probe.
-  if (!configured && process.env.VERCEL) return { mode: "demo", engine: null };
+  // On Vercel, demo unless live grading is explicitly allowed; nothing to probe.
+  if (!liveGradingAllowed()) return { mode: "demo", engine: null };
   const engine = await probeEngine();
   if (engine) return { mode: "live", engine };
   return { mode: configured ? "offline" : "demo", engine: null };

@@ -56,6 +56,9 @@ export function clearHistory() {
 }
 
 function subscribe(cb: () => void) {
+  // Re-read storage on (re)subscribe: another tab may have changed it while no
+  // component was mounted and the storage event had no listener.
+  if (listeners.size === 0) cache = null;
   listeners.add(cb);
   const onStorage = (e: StorageEvent) => {
     if (e.key === HISTORY_KEY) {

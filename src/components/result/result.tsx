@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useId, useState } from "react";
 import Ladder from "@/components/result/ladder";
 import { SAMPLE_META } from "@/data/sample-pikachu-ex";
 import { buildSummary } from "@/lib/summary";
@@ -114,20 +114,21 @@ function Identity({ r, kind }: { r: GradeResponse; kind: ResultKind }) {
   );
 }
 
-function VerdictHero({ r }: { r: GradeResponse }) {
+function VerdictHero({ r, id }: { r: GradeResponse; id: string }) {
   const meta = verdictMeta(r.verdict);
+  const headingId = `${id}-verdict`;
   return (
     <section
       className={`band band-${meta.band} rounded-[var(--r-lg)] p-6 sm:p-8`}
       style={{ background: "var(--bbg)" }}
-      aria-labelledby="verdict-heading"
+      aria-labelledby={headingId}
     >
       <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between md:gap-10">
         <div>
           <p className="eyebrow" style={{ color: "var(--bfg)" }}>
             Verdict
           </p>
-          <h3 id="verdict-heading" className="display mt-2 text-[2.9rem] sm:text-[3.8rem]" style={{ color: "var(--bfg)" }}>
+          <h3 id={headingId} className="display mt-2 text-[2.9rem] sm:text-[3.8rem]" style={{ color: "var(--bfg)" }}>
             {meta.label}
           </h3>
           <p className="mt-3 text-[17px] font-medium text-fg">{meta.blurb}</p>
@@ -164,7 +165,8 @@ function VerdictHero({ r }: { r: GradeResponse }) {
   );
 }
 
-function CenteringPanel({ r }: { r: GradeResponse }) {
+function CenteringPanel({ r, id }: { r: GradeResponse; id: string }) {
+  const headingId = `${id}-centering`;
   const f = r.centering.front;
   const b = r.centering.back;
   const src = overlaySrc(f);
@@ -172,9 +174,9 @@ function CenteringPanel({ r }: { r: GradeResponse }) {
   const br = worseRatio(b);
   const axis = f ? axisLabel(f.worse_axis) : null;
   return (
-    <section className="panel-primary p-5 sm:p-6" aria-labelledby="centering-heading">
+    <section className="panel-primary p-5 sm:p-6" aria-labelledby={headingId}>
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h3 id="centering-heading" className="eyebrow">
+        <h3 id={headingId} className="eyebrow">
           Centering, measured
         </h3>
         {f ? <ConfidenceChip c={f.confidence} /> : null}
@@ -230,12 +232,13 @@ function CenteringPanel({ r }: { r: GradeResponse }) {
   );
 }
 
-function Pillars({ r }: { r: GradeResponse }) {
+function Pillars({ r, id }: { r: GradeResponse; id: string }) {
   const sp = r.soft_pillars;
+  const headingId = `${id}-pillars`;
   return (
-    <section className="panel-primary p-5 sm:p-6" aria-labelledby="pillars-heading">
+    <section className="panel-primary p-5 sm:p-6" aria-labelledby={headingId}>
       <div className="flex items-center justify-between gap-2">
-        <h3 id="pillars-heading" className="eyebrow">
+        <h3 id={headingId} className="eyebrow">
           Corners · Edges · Surface
         </h3>
         <span className="font-mono text-[12px] text-faint">ruled by Claude</span>
@@ -270,13 +273,14 @@ function Pillars({ r }: { r: GradeResponse }) {
   );
 }
 
-function Loupe({ r }: { r: GradeResponse }) {
+function Loupe({ r, id }: { r: GradeResponse; id: string }) {
   const items = r.soft_pillars.loupe_checklist;
+  const headingId = `${id}-loupe`;
   if (!items.length) return null;
   return (
-    <section className="panel-secondary pt-6" aria-labelledby="loupe-heading">
+    <section className="panel-secondary pt-6" aria-labelledby={headingId}>
       <div className="flex items-center justify-between">
-        <h3 id="loupe-heading" className="eyebrow">
+        <h3 id={headingId} className="eyebrow">
           Inspect in hand
         </h3>
         <span className="font-mono text-[12px] text-faint">{items.length} checks</span>
@@ -298,8 +302,9 @@ function Loupe({ r }: { r: GradeResponse }) {
   );
 }
 
-function EVPanel({ r }: { r: GradeResponse }) {
+function EVPanel({ r, id }: { r: GradeResponse; id: string }) {
   const v = r.value;
+  const headingId = `${id}-ev`;
   if (v.card_value == null && v.fee == null && v.spread_9_10 == null) return null;
   const row = (label: string, val: number | null) =>
     val == null ? null : (
@@ -309,8 +314,8 @@ function EVPanel({ r }: { r: GradeResponse }) {
       </div>
     );
   return (
-    <section className="panel-primary p-5 sm:p-6" aria-labelledby="ev-heading">
-      <h3 id="ev-heading" className="eyebrow">
+    <section className="panel-primary p-5 sm:p-6" aria-labelledby={headingId}>
+      <h3 id={headingId} className="eyebrow">
         Expected value
       </h3>
       <div className="mt-3 space-y-1.5">
@@ -333,7 +338,9 @@ function EVPanel({ r }: { r: GradeResponse }) {
       <p className="mt-3 text-[13px] leading-relaxed text-faint">
         {r.ev_worth === false
           ? "The spread does not clear the fee, so the verdict is skip regardless of condition."
-          : "The spread clears the fee, so the money question passes and the card is judged on its condition."}
+          : r.ev_worth === true
+            ? "The spread clears the fee, so the money question passes and the card is judged on its condition."
+            : "Give both the fee and the 9 to 10 spread for the verdict to check that the upside clears the fee."}
       </p>
     </section>
   );
@@ -432,18 +439,21 @@ export default function Result({
   /** Omit for a standalone render (the sample section and /sample page). */
   onReset?: () => void;
 }) {
+  // Several results can be on one page (the sample plus a live one), so every
+  // aria-labelledby target is scoped to this instance.
+  const id = useId();
   return (
     <div className="rise space-y-6">
       <Identity r={result} kind={kind} />
-      <VerdictHero r={result} />
+      <VerdictHero r={result} id={id} />
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)]">
-        <CenteringPanel r={result} />
+        <CenteringPanel r={result} id={id} />
         <div className="space-y-6">
-          <EVPanel r={result} />
-          <Pillars r={result} />
+          <EVPanel r={result} id={id} />
+          <Pillars r={result} id={id} />
         </div>
       </div>
-      <Loupe r={result} />
+      <Loupe r={result} id={id} />
       <div className="grid gap-6 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)]">
         <Photos images={images} />
         <Limits r={result} kind={kind} />
